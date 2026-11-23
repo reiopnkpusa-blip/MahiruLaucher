@@ -76,6 +76,8 @@ public final class SkinManager {
         // only contain the right arm and right leg textures, so mirror those
         // base regions into the modern left-limb UV regions.
         if (bitmap.getWidth() == 64 && bitmap.getHeight() == 32) {
+            // Legacy 64x32 atlases use the Classic arm layout only.
+            variant = "classic";
             Bitmap legacy = bitmap;
             Bitmap modern = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(modern);

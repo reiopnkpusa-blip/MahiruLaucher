@@ -80,6 +80,7 @@ public class Minecraft3DView extends GLSurfaceView
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        setZOrderOnTop(true);
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         slimArms = "slim".equals(SkinManager.getLocalSkinVariant(context));
@@ -252,6 +253,7 @@ public class Minecraft3DView extends GLSurfaceView
                             && bitmap.getHeight() == 64) {
                         if (generation == skinLoadGeneration) {
                             skinBitmap = bitmap;
+                            requestRender();
                         } else {
                             bitmap.recycle();
                         }
@@ -296,6 +298,7 @@ public class Minecraft3DView extends GLSurfaceView
             javax.microedition.khronos.opengles.GL10 gl,
             javax.microedition.khronos.egl.EGLConfig config) {
 
+        textureId = 0;
         GLES20.glClearColor(0f, 0f, 0f, 0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         GLES20.glEnable(GLES20.GL_BLEND);
