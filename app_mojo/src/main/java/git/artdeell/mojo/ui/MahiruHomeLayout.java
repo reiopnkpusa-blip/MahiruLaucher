@@ -47,7 +47,7 @@ public class MahiruHomeLayout extends ConstraintLayout
         super.onFinishInflate();
         if (backgroundImage == null) {
             backgroundImage = new ImageView(getContext());
-            backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            backgroundImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
             backgroundImage.setAlpha(1f);
             backgroundImage.clearColorFilter();
             addView(backgroundImage, 0, new ConstraintLayout.LayoutParams(
@@ -136,7 +136,7 @@ public class MahiruHomeLayout extends ConstraintLayout
 
     private void applySavedCrop() {
         if (backgroundImage == null) return;
-        float zoom = 1f + preferences.getInt("background_crop_zoom", 0) / 100f;
+        float zoom = Math.max(1f, 1f + preferences.getInt("background_crop_zoom", 0) / 100f);
         backgroundImage.setScaleX(zoom);
         backgroundImage.setScaleY(zoom);
         backgroundImage.post(() -> {
