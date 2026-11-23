@@ -45,7 +45,7 @@ public class MahiruHomeLayout extends ConstraintLayout
         super.onFinishInflate();
         if (backgroundImage == null) {
             backgroundImage = new ImageView(getContext());
-            backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            backgroundImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
             backgroundImage.setAlpha(0.82f);
             backgroundImage.setColorFilter(
                     Color.argb(38, 0, 0, 0), PorterDuff.Mode.SRC_ATOP);
