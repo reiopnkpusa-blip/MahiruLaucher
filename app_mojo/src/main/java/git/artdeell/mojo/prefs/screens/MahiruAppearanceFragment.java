@@ -5,6 +5,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.text.InputType;
 import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,6 +23,7 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
     private static final String KEY_MODE = "background_mode";
     private static final String KEY_URI = "background_uri";
     private static final String KEY_COLOR = "background_color";
+    private static final String KEY_BLUR = "background_blur";
 
     private final ActivityResultLauncher<String[]> photoPicker =
             registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
@@ -62,6 +66,15 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
         });
         category.addPreference(color);
 
+        Preference blur = new Preference(requireContext());
+        blur.setTitle("Background image blur");
+        blur.setSummary("Adjust blur from 0% (sharp) to 100% (maximum)");
+        blur.setOnPreferenceClickListener(preference -> {
+            showBlurDialog();
+            return true;
+        });
+        category.addPreference(blur);
+
         Preference reset = new Preference(requireContext());
         reset.setTitle("Reset default anime background");
         reset.setSummary("Restore the default Sakura anime background");
@@ -77,6 +90,39 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
         category.addPreference(reset);
         setPreferenceScreen(screen);
         updatePhotoSummary();
+    }
+
+    private void showBlurDialog() {
+        android.content.SharedPreferences prefs =
+                requireContext().getSharedPreferences(PREFS, 0);
+        int current = prefs.getInt(KEY_BLUR, 0);
+        LinearLayout content = new LinearLayout(requireContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        content.setPadding(pad, pad, pad, pad);
+        TextView value = new TextView(requireContext());
+        value.setText("Blur: " + current + "%");
+        SeekBar slider = new SeekBar(requireContext());
+        slider.setMax(100);
+        slider.setProgress(current);
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                value.setText("Blur: " + progress + "%");
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar) { }
+            @Override public void onStopTrackingTouch(SeekBar bar) { }
+        });
+        content.addView(value);
+        content.addView(slider);
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Background blur")
+                .setView(content)
+                .setNegativeButton("Cancel", null)
+                .setNeutralButton("Reset 0%", (dialog, which) ->
+                        prefs.edit().putInt(KEY_BLUR, 0).apply())
+                .setPositiveButton("Apply", (dialog, which) ->
+                        prefs.edit().putInt(KEY_BLUR, slider.getProgress()).apply())
+                .show();
     }
 
     private void updatePhotoSummary() {
