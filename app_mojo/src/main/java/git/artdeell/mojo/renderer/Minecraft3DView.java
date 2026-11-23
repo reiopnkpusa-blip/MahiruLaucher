@@ -222,7 +222,7 @@ public class Minecraft3DView extends GLSurfaceView
                     }
                 }
                 if (selectedSkin == null) selectedSkin = fallbackSkin;
-                if (selectedSkin == null) return;
+                if (selectedSkin == null || generation != skinLoadGeneration) return;
                 String skinUrl = selectedSkin.optString("url", "");
                 String variant = selectedSkin.optString("variant", "CLASSIC");
                 slimArms = "SLIM".equalsIgnoreCase(variant);
