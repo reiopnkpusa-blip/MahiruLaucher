@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -143,7 +144,15 @@ public class MahiruStoreFragment extends Fragment {
         search.setTextSize(10);
         search.setAllCaps(false);
         search.setTextColor(0xFFFFFFFF);
-        search.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE84E91));
+        GradientDrawable searchButtonBackground = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{0xFFFF78A9, 0xFFE83F88});
+        searchButtonBackground.setCornerRadius(dp(12));
+        searchButtonBackground.setStroke(dp(1), 0xFFFFA7C8);
+        search.setBackground(searchButtonBackground);
+        search.setElevation(dp(3));
+        search.setPadding(dp(8), 0, dp(8), 0);
+        search.setMinHeight(dp(36));
         LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(-1, dp(36));
         searchParams.topMargin = dp(6);
         sidebar.addView(search, searchParams);
@@ -156,6 +165,17 @@ public class MahiruStoreFragment extends Fragment {
         categoriesTitle.setPadding(0, dp(14), 0, dp(6));
         sidebar.addView(categoriesTitle);
 
+        ScrollView sidebarCategoryScroll = new ScrollView(requireContext());
+        sidebarCategoryScroll.setFillViewport(false);
+        sidebarCategoryScroll.setVerticalScrollBarEnabled(false);
+        sidebarCategoryScroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        sidebar.addView(sidebarCategoryScroll,
+                new LinearLayout.LayoutParams(-1, 0, 1));
+        LinearLayout sidebarCategoryList = new LinearLayout(requireContext());
+        sidebarCategoryList.setOrientation(LinearLayout.VERTICAL);
+        sidebarCategoryScroll.addView(sidebarCategoryList,
+                new ScrollView.LayoutParams(-1, -2));
+
         String[] shortNames = {"Mods", "Shaders", "Resource Packs", "Datapacks", "Modpacks"};
         for (int i = 0; i < categories.length; i++) {
             final int index = i;
@@ -167,7 +187,7 @@ public class MahiruStoreFragment extends Fragment {
             item.setPadding(dp(8), dp(7), dp(4), dp(7));
             item.setTag(index);
             categoryButtons.add(item);
-            sidebar.addView(item, new LinearLayout.LayoutParams(-1, dp(34)));
+            sidebarCategoryList.addView(item, new LinearLayout.LayoutParams(-1, dp(38)));
             item.setOnClickListener(v -> selectCategory(index));
         }
 
@@ -262,6 +282,10 @@ public class MahiruStoreFragment extends Fragment {
 
         resultList = new ListView(requireContext());
         resultList.setDividerHeight(dp(1));
+        resultList.setVerticalScrollBarEnabled(true);
+        resultList.setFastScrollEnabled(true);
+        resultList.setNestedScrollingEnabled(true);
+        resultList.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
         resultList.setBackgroundColor(0x00171019);
         resultAdapter = new ArrayAdapter<String>(requireContext(),
                 android.R.layout.simple_list_item_2, android.R.id.text1, resultTitles) {
