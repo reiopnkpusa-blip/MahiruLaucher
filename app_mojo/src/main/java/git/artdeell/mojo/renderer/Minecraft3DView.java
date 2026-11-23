@@ -371,29 +371,32 @@ public class Minecraft3DView extends GLSurfaceView
             float z0 = -d / 2f, z1 = d / 2f;
 
             // Standard Minecraft skin atlas cuboid layout
+            // UV offsets must use the original skin dimensions (uvD), not the
+            // expanded outer-layer geometry depth (d). Using d here shifts every
+            // face of the hat/jacket/sleeves/trousers into neighboring atlas pixels.
             face(data, index,
                     new float[]{x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1},
-                    u+d, v+d, uvW, uvH);
+                    u+uvD, v+uvD, uvW, uvH);
 
             face(data, index,
                     new float[]{x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0},
-                    u+d+uvW+d, v+d, uvW, uvH);
+                    u+uvD+uvW+uvD, v+uvD, uvW, uvH);
 
             face(data, index,
                     new float[]{x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1},
-                    u, v+d, uvD, uvH);
+                    u, v+uvD, uvD, uvH);
 
             face(data, index,
                     new float[]{x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0},
-                    u+d+uvW, v+d, uvD, uvH);
+                    u+uvD+uvW, v+uvD, uvD, uvH);
 
             face(data, index,
                     new float[]{x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z0},
-                    u+d, v, uvW, uvD);
+                    u+uvD, v, uvW, uvD);
 
             face(data, index,
                     new float[]{x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1},
-                    u+d+uvW, v, uvW, uvD);
+                    u+uvD+uvW, v, uvW, uvD);
 
             ByteBuffer bb = ByteBuffer.allocateDirect(data.length * 4);
             bb.order(ByteOrder.nativeOrder());
