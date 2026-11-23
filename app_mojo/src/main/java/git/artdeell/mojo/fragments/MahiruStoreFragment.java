@@ -131,7 +131,7 @@ public class MahiruStoreFragment extends Fragment {
         for (int i = 0; i < categories.length; i++) {
             final int index = i;
             TextView item = new TextView(requireContext());
-            item.setText(categoryIcons[i] + "\\n" + categories[i]);
+            item.setText(categoryIcons[i] + String.valueOf((char) 10) + categories[i]);
             item.setTextColor(i == 0 ? 0xFFFFFFFF : 0xFFD9CED8);
             item.setTextSize(11);
             item.setGravity(Gravity.CENTER);
