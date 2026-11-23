@@ -61,7 +61,7 @@
                 android:hint="@string/unnamed"
                 android:inputType="textPersonName"
                 android:paddingHorizontal="@dimen/padding_heavy"
-                app:layout_constraintTop_toBottomOf="@id/vprof_editor_instance_icon"  android:textColor="#FFF8EDF3" android:hintTextColor="#FFBFAEBA"/>
+                app:layout_constraintTop_toBottomOf="@id/vprof_editor_instance_icon"  android:textColor="#FFF8EDF3" android:textColorHint="#FFBFAEBA"/>
 
 
             <TextView
@@ -179,7 +179,7 @@
                 android:paddingHorizontal="@dimen/padding_heavy"
                 android:textSize="@dimen/_13ssp"
 
-                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_data_checkbox_container"  android:textColor="#FFF8EDF3" android:hintTextColor="#FFBFAEBA"/>
+                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_data_checkbox_container"  android:textColor="#FFF8EDF3" android:textColorHint="#FFBFAEBA"/>
 
             <TextView
                 android:id="@+id/textView2"
