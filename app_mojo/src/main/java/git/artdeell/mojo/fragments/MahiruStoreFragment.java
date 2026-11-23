@@ -156,7 +156,7 @@ public class MahiruStoreFragment extends Fragment {
         categoriesTitle.setPadding(0, dp(14), 0, dp(6));
         sidebar.addView(categoriesTitle);
 
-        String[] shortNames = {"Mods", "Shaders", "Resource", "Datapacks", "Modpacks"};
+        String[] shortNames = {"Mods", "Shaders", "Resource Packs", "Datapacks", "Modpacks"};
         for (int i = 0; i < categories.length; i++) {
             final int index = i;
             TextView item = new TextView(requireContext());
@@ -207,12 +207,12 @@ public class MahiruStoreFragment extends Fragment {
             icon.setColorFilter(0xFFFF8AB5);
             tile.addView(icon, new LinearLayout.LayoutParams(dp(27), dp(27)));
             TextView label = new TextView(requireContext());
-            label.setText(shortNames[i]);
+            label.setText(categories[i]);
             label.setTextColor(0xFFF7EDF3);
             label.setTextSize(10);
             label.setGravity(Gravity.CENTER);
             tile.addView(label);
-            LinearLayout.LayoutParams tileParams = new LinearLayout.LayoutParams(dp(86), dp(76));
+            LinearLayout.LayoutParams tileParams = new LinearLayout.LayoutParams(dp(94), dp(78));
             tileParams.rightMargin = dp(7);
             categoryRow.addView(tile, tileParams);
             categoryButtons.add(tile);
