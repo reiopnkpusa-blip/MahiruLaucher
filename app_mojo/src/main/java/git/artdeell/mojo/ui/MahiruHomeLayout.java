@@ -97,9 +97,23 @@ public class MahiruHomeLayout extends ConstraintLayout
             }
             new Thread(() -> {
                 Bitmap photo = null;
-                try (InputStream input = getContext().getContentResolver()
-                        .openInputStream(Uri.parse(saved))) {
-                    if (input != null) photo = BitmapFactory.decodeStream(input);
+                Uri photoUri = Uri.parse(saved);
+                try (InputStream boundsInput = getContext().getContentResolver()
+                        .openInputStream(photoUri)) {
+                    if (boundsInput != null) {
+                        BitmapFactory.Options bounds = new BitmapFactory.Options();
+                        bounds.inJustDecodeBounds = true;
+                        BitmapFactory.decodeStream(boundsInput, null, bounds);
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight);
+                        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                        try (InputStream imageInput = getContext().getContentResolver()
+                                .openInputStream(photoUri)) {
+                            if (imageInput != null) {
+                                photo = BitmapFactory.decodeStream(imageInput, null, options);
+                            }
+                        }
+                    }
                 } catch (Exception ignored) { }
                 final Bitmap result = applyConfiguredBlur(photo);
                 post(() -> {
