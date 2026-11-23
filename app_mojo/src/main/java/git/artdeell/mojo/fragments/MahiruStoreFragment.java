@@ -306,12 +306,13 @@ public class MahiruStoreFragment extends Fragment {
         progress.setVisibility(View.VISIBLE);
         status.setText("Downloading " + filename + "...");
         new Thread(() -> {
-            File temp = new File(Tools.DIR_CACHE, "mahiru-store-" + System.currentTimeMillis() + "-" + filename);
+            String safeName = FileUtils.escapeFileName(new File(filename).getName());
+            File temp = new File(Tools.DIR_CACHE, "mahiru-store-" + System.currentTimeMillis() + "-" + safeName);
             try {
                 DownloadUtils.downloadFile(url, temp);
                 if ("modpack".equals(type)) {
                     new ModrinthApi().installLocalModpack(project.optString("title", "Modpack"),
-                            temp, project.optString("icon_url", null));
+                            temp, null);
                 } else {
                     File destination;
                     String folder;
@@ -328,7 +329,7 @@ public class MahiruStoreFragment extends Fragment {
                         destination = new File(instance.getGameDirectory(), folder);
                     }
                     FileUtils.ensureDirectory(destination);
-                    File output = new File(destination, new File(filename).getName());
+                    File output = new File(destination, safeName);
                     if (!output.getCanonicalPath().startsWith(destination.getCanonicalPath() + File.separator)) {
                         throw new SecurityException("Invalid file path.");
                     }
