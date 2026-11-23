@@ -61,9 +61,8 @@ public class MahiruStoreFragment extends Fragment {
     private TextView versionLabel, status;
     private TextView progressLabel;
     private ProgressBar progress;
-    private ListView resultList;
-    private ArrayAdapter<String> resultAdapter;
-    private final ArrayList<String> resultTitles = new ArrayList<>();
+    private LinearLayout resultContainer;
+    private TextView resultsHeading;
     private final ArrayList<View> categoryButtons = new ArrayList<>();
     private String gameVersion = "";
     private int requestGeneration = 0;
@@ -191,10 +190,19 @@ public class MahiruStoreFragment extends Fragment {
             item.setOnClickListener(v -> selectCategory(index));
         }
 
+        // The entire right pane scrolls as one page. Category tiles move off-screen
+        // naturally while the project feed takes over the available viewport.
+        ScrollView contentScroll = new ScrollView(requireContext());
+        contentScroll.setFillViewport(true);
+        contentScroll.setVerticalScrollBarEnabled(true);
+        contentScroll.setNestedScrollingEnabled(true);
+        contentScroll.setClipToPadding(false);
+        body.addView(contentScroll, new LinearLayout.LayoutParams(0, -1, 1));
+
         LinearLayout content = new LinearLayout(requireContext());
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(10), 0, 0, 0);
-        body.addView(content, new LinearLayout.LayoutParams(0, -1, 1));
+        content.setPadding(dp(10), 0, dp(2), dp(12));
+        contentScroll.addView(content, new ScrollView.LayoutParams(-1, -2));
 
         TextView categoryHeading = new TextView(requireContext());
         categoryHeading.setText("Categories");
@@ -280,44 +288,18 @@ public class MahiruStoreFragment extends Fragment {
         status.setPadding(0, dp(6), 0, dp(6));
         content.addView(status);
 
-        resultList = new ListView(requireContext());
-        resultList.setDividerHeight(dp(1));
-        resultList.setVerticalScrollBarEnabled(true);
-        resultList.setFastScrollEnabled(true);
-        resultList.setNestedScrollingEnabled(true);
-        resultList.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
-        resultList.setBackgroundColor(0x00171019);
-        resultAdapter = new ArrayAdapter<String>(requireContext(),
-                android.R.layout.simple_list_item_2, android.R.id.text1, resultTitles) {
-            @NonNull @Override
-            public View getView(int position, @Nullable View convertView,
-                                @NonNull ViewGroup parent) {
-                LinearLayout row = new LinearLayout(requireContext());
-                row.setOrientation(LinearLayout.VERTICAL);
-                row.setPadding(dp(12), dp(10), dp(12), dp(10));
-                row.setBackground(categoryBackground(false));
-                TextView name = new TextView(requireContext());
-                name.setText(resultTitles.get(position));
-                name.setTextColor(0xFFFFFFFF);
-                name.setTextSize(14);
-                name.setTypeface(null, 1);
-                TextView description = new TextView(requireContext());
-                JSONObject item = results.get(position);
-                description.setText(item.optString("description", ""));
-                description.setTextColor(0xFFD0C3CE);
-                description.setTextSize(11);
-                description.setMaxLines(2);
-                row.addView(name);
-                row.addView(description);
-                return row;
-            }
-        };
-        LayoutAnimationController listAnimation = new LayoutAnimationController(
-                new AlphaAnimation(0f, 1f), 0.035f);
-        listAnimation.setInterpolator(new DecelerateInterpolator());
-        resultList.setLayoutAnimation(listAnimation);
-        resultList.setAdapter(resultAdapter);
-        content.addView(resultList, new LinearLayout.LayoutParams(-1, 0, 1));
+        resultsHeading = new TextView(requireContext());
+        resultsHeading.setText("ALL MODS");
+        resultsHeading.setTextColor(0xFFFFFFFF);
+        resultsHeading.setTextSize(15);
+        resultsHeading.setTypeface(null, 1);
+        resultsHeading.setPadding(0, dp(8), 0, dp(6));
+        content.addView(resultsHeading);
+
+        resultContainer = new LinearLayout(requireContext());
+        resultContainer.setOrientation(LinearLayout.VERTICAL);
+        resultContainer.setClipToPadding(false);
+        content.addView(resultContainer, new LinearLayout.LayoutParams(-1, -2));
 
         search.setOnClickListener(v -> searchProjects());
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
@@ -331,17 +313,59 @@ public class MahiruStoreFragment extends Fragment {
                 }));
         loaderSpinner.setOnItemSelectedListener(
                 new SimpleSelectionListener(() -> searchProjects()));
-        resultList.setOnItemClickListener(
-                (parent, view, position, id) -> showProjectVersions(position));
-
         refreshCategorySelection();
         searchProjects();
         return root;
     }
 
+    private void renderResults() {
+        if (resultContainer == null) return;
+        resultContainer.removeAllViews();
+        for (int i = 0; i < results.size(); i++) {
+            final int position = i;
+            JSONObject project = results.get(i);
+
+            LinearLayout row = new LinearLayout(requireContext());
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPadding(dp(12), dp(11), dp(12), dp(11));
+            row.setBackground(categoryBackground(false));
+            row.setClickable(true);
+            row.setFocusable(true);
+
+            TextView name = new TextView(requireContext());
+            name.setText(project.optString("title", "Untitled"));
+            name.setTextColor(0xFFFFFFFF);
+            name.setTextSize(14);
+            name.setTypeface(null, 1);
+
+            TextView description = new TextView(requireContext());
+            description.setText(project.optString("description", ""));
+            description.setTextColor(0xFFD0C3CE);
+            description.setTextSize(11);
+            description.setMaxLines(2);
+
+            row.addView(name);
+            LinearLayout.LayoutParams descriptionParams =
+                    new LinearLayout.LayoutParams(-1, -2);
+            descriptionParams.topMargin = dp(3);
+            row.addView(description, descriptionParams);
+
+            LinearLayout.LayoutParams rowParams =
+                    new LinearLayout.LayoutParams(-1, -2);
+            rowParams.bottomMargin = dp(7);
+            resultContainer.addView(row, rowParams);
+            row.setOnClickListener(v -> showProjectVersions(position));
+            row.setAlpha(0f);
+            row.animate().alpha(1f).setDuration(180).start();
+        }
+    }
+
     private void selectCategory(int index) {
         if (categorySpinner == null) return;
         categorySpinner.setSelection(index);
+        if (resultsHeading != null) {
+            resultsHeading.setText("ALL " + categories[index].toUpperCase(Locale.ROOT));
+        }
         refreshCategorySelection();
         searchProjects();
     }
@@ -375,8 +399,7 @@ public class MahiruStoreFragment extends Fragment {
         progress.setVisibility(View.VISIBLE);
         status.setText("Searching Modrinth...");
         results.clear();
-        resultTitles.clear();
-        resultAdapter.notifyDataSetChanged();
+        renderResults();
 
         final String query = searchInput.getText().toString().trim();
         if (gameVersion == null || gameVersion.trim().isEmpty()) {
@@ -409,9 +432,7 @@ public class MahiruStoreFragment extends Fragment {
                     if (generation != requestGeneration) return;
                     results.clear();
                     results.addAll(found);
-                    resultTitles.clear();
-                    for (JSONObject item : found) resultTitles.add(item.optString("title", "Untitled"));
-                    resultAdapter.notifyDataSetChanged();
+                    renderResults();
                     progress.setVisibility(View.GONE);
                     status.setText(found.isEmpty() ? "No compatible projects found." : found.size() + " results • Tap an item to install");
                 });
