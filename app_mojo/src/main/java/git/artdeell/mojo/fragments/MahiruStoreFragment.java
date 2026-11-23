@@ -92,64 +92,131 @@ public class MahiruStoreFragment extends Fragment {
         root.addView(title);
 
         TextView subtitle = new TextView(requireContext());
-        subtitle.setText("Discover compatible Minecraft content from Modrinth");
+        subtitle.setText("Discover Minecraft mods, shaders and more");
         subtitle.setTextColor(0xFFD9CED8);
         subtitle.setTextSize(12);
+        subtitle.setPadding(0, 0, 0, dp(10));
         root.addView(subtitle);
+
+        LinearLayout body = new LinearLayout(requireContext());
+        body.setOrientation(LinearLayout.HORIZONTAL);
+        root.addView(body, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        // Keep the spinner as the category state source; the visible controls
+        // are a compact icon rail on the left.
+        categorySpinner = new Spinner(requireContext());
+        categorySpinner.setVisibility(View.GONE);
+        categorySpinner.setAdapter(new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_dropdown_item, categories));
+
+        LinearLayout sidebar = new LinearLayout(requireContext());
+        sidebar.setOrientation(LinearLayout.VERTICAL);
+        sidebar.setPadding(dp(5), dp(8), dp(5), dp(8));
+        sidebar.setBackgroundColor(0xFF211923);
+        body.addView(sidebar, new LinearLayout.LayoutParams(dp(104), -1));
+
+        TextView filterTitle = new TextView(requireContext());
+        filterTitle.setText("FILTERS");
+        filterTitle.setTextColor(0xFFFF8AB5);
+        filterTitle.setTextSize(11);
+        filterTitle.setTypeface(null, 1);
+        filterTitle.setGravity(Gravity.CENTER);
+        filterTitle.setPadding(0, dp(4), 0, dp(10));
+        sidebar.addView(filterTitle);
+
+        String[] categoryIcons = {"🧩", "📦", "🗺️", "🌈", "🎨"};
+        for (int i = 0; i < categories.length; i++) {
+            final int index = i;
+            TextView item = new TextView(requireContext());
+            item.setText(categoryIcons[i] + "\\n" + categories[i]);
+            item.setTextColor(i == 0 ? 0xFFFFFFFF : 0xFFD9CED8);
+            item.setTextSize(11);
+            item.setGravity(Gravity.CENTER);
+            item.setPadding(dp(3), dp(10), dp(3), dp(10));
+            item.setMinHeight(dp(62));
+            item.setBackgroundColor(i == 0 ? 0xFFB93670 : 0x00211923);
+            sidebar.addView(item, new LinearLayout.LayoutParams(-1, -2));
+            item.setOnClickListener(v -> {
+                categorySpinner.setSelection(index);
+                for (int j = 0; j < sidebar.getChildCount(); j++) {
+                    View child = sidebar.getChildAt(j);
+                    if (child instanceof TextView && j > 0) {
+                        child.setBackgroundColor(j == index + 1
+                                ? 0xFFB93670 : 0x00211923);
+                        ((TextView) child).setTextColor(j == index + 1
+                                ? 0xFFFFFFFF : 0xFFD9CED8);
+                    }
+                }
+                searchProjects();
+            });
+        }
+
+        LinearLayout content = new LinearLayout(requireContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(10), 0, 0, 0);
+        body.addView(content, new LinearLayout.LayoutParams(0, -1, 1));
 
         searchInput = new EditText(requireContext());
         searchInput.setSingleLine(true);
-        searchInput.setHint("Search mods, packs and more...");
+        searchInput.setHint("Search content...");
         searchInput.setTextColor(0xFFFFFFFF);
         searchInput.setHintTextColor(0xFFAA9EAA);
-        root.addView(searchInput, new LinearLayout.LayoutParams(-1, dp(48)));
+        searchInput.setTextSize(14);
+        content.addView(searchInput, new LinearLayout.LayoutParams(-1, dp(46)));
 
-        LinearLayout filters = new LinearLayout(requireContext());
-        filters.setOrientation(LinearLayout.HORIZONTAL);
-        categorySpinner = new Spinner(requireContext());
+        TextView loaderTitle = new TextView(requireContext());
+        loaderTitle.setText("GAME LOADER");
+        loaderTitle.setTextColor(0xFFFF8AB5);
+        loaderTitle.setTextSize(11);
+        loaderTitle.setTypeface(null, 1);
+        loaderTitle.setPadding(0, dp(8), 0, dp(2));
+        content.addView(loaderTitle);
+
         loaderSpinner = new Spinner(requireContext());
-        categorySpinner.setAdapter(new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_dropdown_item, categories));
         loaderSpinner.setAdapter(new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, loaders));
-        filters.addView(categorySpinner, new LinearLayout.LayoutParams(0, dp(46), 1));
-        filters.addView(loaderSpinner, new LinearLayout.LayoutParams(0, dp(46), 1));
-        root.addView(filters);
+        content.addView(loaderSpinner, new LinearLayout.LayoutParams(-1, dp(42)));
 
         versionLabel = new TextView(requireContext());
         versionLabel.setTextColor(0xFFFF8AB5);
-        versionLabel.setTextSize(13);
-        versionLabel.setPadding(0, dp(6), 0, dp(6));
-        root.addView(versionLabel);
+        versionLabel.setTextSize(12);
+        versionLabel.setPadding(0, dp(4), 0, dp(6));
+        content.addView(versionLabel);
         updateVersionLabel();
 
         Button search = new Button(requireContext());
         search.setText("SEARCH");
+        search.setTextColor(0xFFFFFFFF);
         search.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE84E91));
-        root.addView(search, new LinearLayout.LayoutParams(-1, dp(44)));
+        content.addView(search, new LinearLayout.LayoutParams(-1, dp(42)));
 
-        progress = new ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal);
+        progress = new ProgressBar(requireContext(), null,
+                android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);
         progress.setVisibility(View.GONE);
-        root.addView(progress, new LinearLayout.LayoutParams(-1, dp(5)));
+        content.addView(progress, new LinearLayout.LayoutParams(-1, dp(4)));
+
         progressLabel = new TextView(requireContext());
         progressLabel.setTextColor(0xFFFF8AB5);
         progressLabel.setTextSize(11);
         progressLabel.setVisibility(View.GONE);
-        root.addView(progressLabel);
+        content.addView(progressLabel);
 
         status = new TextView(requireContext());
         status.setTextColor(0xFFD9CED8);
+        status.setTextSize(12);
         status.setGravity(Gravity.CENTER);
-        status.setPadding(0, dp(10), 0, dp(10));
-        root.addView(status);
+        status.setPadding(0, dp(8), 0, dp(8));
+        content.addView(status);
 
         resultList = new ListView(requireContext());
         resultList.setDividerHeight(dp(1));
+        resultList.setBackgroundColor(0xFF211923);
         resultAdapter = new ArrayAdapter<String>(requireContext(),
                 android.R.layout.simple_list_item_2, android.R.id.text1, resultTitles) {
             @NonNull @Override
-            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            public View getView(int position, @Nullable View convertView,
+                                @NonNull ViewGroup parent) {
                 LinearLayout row = new LinearLayout(requireContext());
                 row.setOrientation(LinearLayout.VERTICAL);
                 row.setPadding(dp(12), dp(12), dp(12), dp(12));
@@ -163,22 +230,26 @@ public class MahiruStoreFragment extends Fragment {
                 description.setText(item.optString("description", ""));
                 description.setTextColor(0xFFBFB3C0);
                 description.setTextSize(12);
+                description.setMaxLines(2);
                 row.addView(name);
                 row.addView(description);
                 return row;
             }
         };
         resultList.setAdapter(resultAdapter);
-        root.addView(resultList, new LinearLayout.LayoutParams(-1, 0, 1));
+        content.addView(resultList, new LinearLayout.LayoutParams(-1, 0, 1));
 
         search.setOnClickListener(v -> searchProjects());
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
             searchProjects();
             return true;
         });
-        categorySpinner.setOnItemSelectedListener(new SimpleSelectionListener(() -> searchProjects()));
-        loaderSpinner.setOnItemSelectedListener(new SimpleSelectionListener(() -> searchProjects()));
-        resultList.setOnItemClickListener((parent, view, position, id) -> showProjectVersions(position));
+        categorySpinner.setOnItemSelectedListener(
+                new SimpleSelectionListener(() -> searchProjects()));
+        loaderSpinner.setOnItemSelectedListener(
+                new SimpleSelectionListener(() -> searchProjects()));
+        resultList.setOnItemClickListener(
+                (parent, view, position, id) -> showProjectVersions(position));
 
         searchProjects();
         return root;
