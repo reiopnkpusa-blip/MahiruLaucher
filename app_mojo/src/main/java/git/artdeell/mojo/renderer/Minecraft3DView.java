@@ -204,22 +204,24 @@ public class Minecraft3DView extends GLSurfaceView
                 org.json.JSONArray skins = profile.optJSONArray("skins");
                 if (skins == null || skins.length() == 0) return;
 
-                String skinUrl = null;
+                org.json.JSONObject selectedSkin = null;
+                org.json.JSONObject fallbackSkin = null;
                 for (int i = 0; i < skins.length(); i++) {
                     org.json.JSONObject item = skins.optJSONObject(i);
-                    if (item != null) {
-                        String candidate = item.optString("url", "");
-                        if (!candidate.isEmpty()) {
-                            skinUrl = candidate;
-                            String variant = item.optString("variant", "CLASSIC");
-                            slimArms = "SLIM".equalsIgnoreCase(variant);
-                            queueEvent(this::buildPlayerModel);
-                            requestRender();
-                            break;
-                        }
+                    if (item == null || item.optString("url", "").isEmpty()) continue;
+                    if (fallbackSkin == null) fallbackSkin = item;
+                    if ("ACTIVE".equalsIgnoreCase(item.optString("state", ""))) {
+                        selectedSkin = item;
+                        break;
                     }
                 }
-                if (skinUrl == null) return;
+                if (selectedSkin == null) selectedSkin = fallbackSkin;
+                if (selectedSkin == null) return;
+                String skinUrl = selectedSkin.optString("url", "");
+                String variant = selectedSkin.optString("variant", "CLASSIC");
+                slimArms = "SLIM".equalsIgnoreCase(variant);
+                queueEvent(this::buildPlayerModel);
+                requestRender();
 
                 connection.disconnect();
                 connection = (HttpURLConnection) new URL(skinUrl).openConnection();
