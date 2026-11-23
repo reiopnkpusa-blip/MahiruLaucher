@@ -42,6 +42,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Tools.checkStorageInteractive(this);
+        Tools.setInsetsMode(this, setFullscreen(), shouldIgnoreNotch());
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            Tools.setInsetsMode(this, setFullscreen(), shouldIgnoreNotch());
+        }
     }
 
     @Override
@@ -64,10 +73,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void onMultiWindowModeChangedInner() {
-        boolean wantsFullscreen = setFullscreen();
-        if(wantsFullscreen) {
-            Tools.setInsetsMode(this, true, shouldIgnoreNotch());
-        }
+        Tools.setInsetsMode(this, setFullscreen(), shouldIgnoreNotch());
     }
 
     /** @return Whether or not the notch should be ignored */
