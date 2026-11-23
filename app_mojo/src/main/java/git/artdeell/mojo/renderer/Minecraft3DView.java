@@ -9,6 +9,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import androidx.preference.PreferenceManager;
 
@@ -44,6 +45,7 @@ public class Minecraft3DView extends GLSurfaceView
     private int textureId;
 
     private float rotation;
+    private float lastTouchX;
     private float armAnimation;
     private volatile boolean slimArms;
     private volatile Bitmap skinBitmap;
@@ -105,6 +107,34 @@ public class Minecraft3DView extends GLSurfaceView
                     requestRender();
                 }
             };
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                lastTouchX = event.getX();
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                float currentX = event.getX();
+                float delta = currentX - lastTouchX;
+                lastTouchX = currentX;
+                rotation += delta * 0.65f;
+                requestRender();
+                return true;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                performClick();
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
+    }
 
     private void loadSelectedSkin() {
         if (skinLoading || skinBitmap != null) return;
