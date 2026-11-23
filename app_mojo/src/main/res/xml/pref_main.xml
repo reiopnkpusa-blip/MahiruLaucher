@@ -18,6 +18,15 @@
             android:defaultValue="true"
             app:iconSpaceReserved="false" />
 
+        <ListPreference
+            android:key="local_skin_model"
+            android:title="Local skin model"
+            android:summary="Choose Classic (4-pixel arms) or Slim (3-pixel arms) for your imported skin."
+            android:entries="@array/mahiru_skin_model_entries"
+            android:entryValues="@array/mahiru_skin_model_values"
+            android:defaultValue="classic"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
