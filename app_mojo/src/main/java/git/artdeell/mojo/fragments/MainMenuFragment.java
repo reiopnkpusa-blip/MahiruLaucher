@@ -4,6 +4,7 @@ import static git.artdeell.mojo.Tools.openPath;
 import static git.artdeell.mojo.Tools.shareLog;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -104,7 +105,10 @@ public class MainMenuFragment extends Fragment {
                 view.findViewById(R.id.lobby_3d_container);
 
         if (lobbyContainer != null) {
+            lobbyContainer.setBackgroundColor(Color.TRANSPARENT);
+            lobbyContainer.setClipToPadding(false);
             mLobby3DView = new Minecraft3DView(requireContext());
+            mLobby3DView.setBackgroundColor(Color.TRANSPARENT);
 
             lobbyContainer.addView(
                     mLobby3DView,
