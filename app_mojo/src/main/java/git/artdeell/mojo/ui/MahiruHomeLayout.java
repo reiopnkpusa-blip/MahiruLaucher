@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.widget.ImageView;
@@ -141,8 +142,15 @@ public class MahiruHomeLayout extends ConstraintLayout
         backgroundImage.post(() -> {
             float panX = preferences.getFloat("background_crop_x", 0f);
             float panY = preferences.getFloat("background_crop_y", 0f);
-            backgroundImage.setTranslationX(panX * backgroundImage.getWidth() * zoom);
-            backgroundImage.setTranslationY(panY * backgroundImage.getHeight() * zoom);
+            if (!(backgroundImage.getDrawable() instanceof BitmapDrawable)) return;
+            Bitmap bitmap = ((BitmapDrawable) backgroundImage.getDrawable()).getBitmap();
+            float width = backgroundImage.getWidth();
+            float height = backgroundImage.getHeight();
+            float base = Math.max(width / bitmap.getWidth(), height / bitmap.getHeight());
+            float maxX = Math.max(0f, (bitmap.getWidth() * base * zoom - width) / 2f);
+            float maxY = Math.max(0f, (bitmap.getHeight() * base * zoom - height) / 2f);
+            backgroundImage.setTranslationX(panX * maxX);
+            backgroundImage.setTranslationY(panY * maxY);
         });
     }
 

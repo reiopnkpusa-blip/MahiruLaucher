@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 import android.widget.FrameLayout;
+import android.view.Gravity;
 import android.net.Uri;
 import android.text.InputType;
 import android.widget.EditText;
@@ -68,6 +69,7 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
         content.setOrientation(LinearLayout.VERTICAL);
         int pad = (int) (16 * getResources().getDisplayMetrics().density);
         content.setPadding(pad, pad, pad, pad);
+        content.setGravity(Gravity.CENTER_HORIZONTAL);
         TextView hint = new TextView(requireContext());
         hint.setText("Drag to position the photo. Use the slider to zoom.");
         content.addView(hint);
@@ -79,8 +81,11 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
         cropFrame.setClipChildren(true);
         cropFrame.setClipToPadding(true);
         cropFrame.addView(previewView, new FrameLayout.LayoutParams(-1, -1));
-        content.addView(cropFrame, new LinearLayout.LayoutParams(-1,
-                (int) (250 * getResources().getDisplayMetrics().density)));
+        boolean landscape = getResources().getDisplayMetrics().widthPixels
+                > getResources().getDisplayMetrics().heightPixels;
+        int cropWidth = (int) ((landscape ? 320 : 180) * getResources().getDisplayMetrics().density);
+        int cropHeight = (int) ((landscape ? 180 : 320) * getResources().getDisplayMetrics().density);
+        content.addView(cropFrame, new LinearLayout.LayoutParams(cropWidth, cropHeight));
 
         final float[] drag = new float[]{0f, 0f, 0f, 0f};
         previewView.setOnTouchListener((view, event) -> {
@@ -130,8 +135,12 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                 .setView(content)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Use this crop", (d, w) -> {
-                    float panX = previewView.getTranslationX() / Math.max(1f, previewView.getWidth());
-                    float panY = previewView.getTranslationY() / Math.max(1f, previewView.getHeight());
+                    float maxX = Math.max(1f, previewView.getWidth()
+                            * (previewView.getScaleX() - 1f) / 2f);
+                    float maxY = Math.max(1f, previewView.getHeight()
+                            * (previewView.getScaleY() - 1f) / 2f);
+                    float panX = previewView.getTranslationX() / maxX;
+                    float panY = previewView.getTranslationY() / maxY;
                     requireContext().getSharedPreferences(PREFS, 0).edit()
                             .putString(KEY_MODE, "photo")
                             .putString(KEY_URI, uri.toString())
