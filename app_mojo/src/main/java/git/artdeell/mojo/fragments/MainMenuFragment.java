@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -124,6 +125,28 @@ public class MainMenuFragment extends Fragment {
         mOpenDirectoryButton.setOnClickListener(
                 v -> openGameDirectory(v.getContext())
         );
+
+
+        View moreButton = view.findViewById(R.id.more_button);
+        moreButton.setOnClickListener(v -> {
+            String[] items = {
+                    "Guide", "Discord", "Controller",
+                    "Extract JAR", "Share Logs", "Game Files"
+            };
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Mahiru Launcher")
+                    .setItems(items, (dialog, which) -> {
+                        switch (which) {
+                            case 0: mNewsButton.performClick(); break;
+                            case 1: mDiscordButton.performClick(); break;
+                            case 2: mCustomControlButton.performClick(); break;
+                            case 3: mInstallJarButton.performClick(); break;
+                            case 4: mShareLogsButton.performClick(); break;
+                            case 5: mOpenDirectoryButton.performClick(); break;
+                        }
+                    })
+                    .show();
+        });
 
         mNewsButton.setOnLongClickListener(v -> {
             Tools.swapFragment(
