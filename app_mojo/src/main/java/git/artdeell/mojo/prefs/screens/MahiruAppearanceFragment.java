@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.MotionEvent;
 import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.net.Uri;
 import android.text.InputType;
 import android.widget.EditText;
@@ -74,7 +75,11 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
         ImageView previewView = new ImageView(requireContext());
         previewView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         previewView.setImageBitmap(preview);
-        content.addView(previewView, new LinearLayout.LayoutParams(-1,
+        FrameLayout cropFrame = new FrameLayout(requireContext());
+        cropFrame.setClipChildren(true);
+        cropFrame.setClipToPadding(true);
+        cropFrame.addView(previewView, new FrameLayout.LayoutParams(-1, -1));
+        content.addView(cropFrame, new LinearLayout.LayoutParams(-1,
                 (int) (250 * getResources().getDisplayMetrics().density)));
 
         final float[] drag = new float[]{0f, 0f, 0f, 0f};
@@ -87,6 +92,10 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                 drag[2] += event.getX() - drag[0];
                 drag[3] += event.getY() - drag[1];
                 drag[0] = event.getX(); drag[1] = event.getY();
+                float maxX = previewView.getWidth() * (previewView.getScaleX() - 1f) / 2f;
+                float maxY = previewView.getHeight() * (previewView.getScaleY() - 1f) / 2f;
+                drag[2] = Math.max(-maxX, Math.min(maxX, drag[2]));
+                drag[3] = Math.max(-maxY, Math.min(maxY, drag[3]));
                 view.setTranslationX(drag[2]);
                 view.setTranslationY(drag[3]);
                 return true;
@@ -105,6 +114,12 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                 float factor = 1f + value / 100f;
                 previewView.setScaleX(factor);
                 previewView.setScaleY(factor);
+                float maxX = previewView.getWidth() * (factor - 1f) / 2f;
+                float maxY = previewView.getHeight() * (factor - 1f) / 2f;
+                drag[2] = Math.max(-maxX, Math.min(maxX, drag[2]));
+                drag[3] = Math.max(-maxY, Math.min(maxY, drag[3]));
+                previewView.setTranslationX(drag[2]);
+                previewView.setTranslationY(drag[3]);
             }
             @Override public void onStartTrackingTouch(SeekBar bar) { }
             @Override public void onStopTrackingTouch(SeekBar bar) { }
@@ -175,6 +190,9 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                     .putString(KEY_MODE, "default")
                     .remove(KEY_URI)
                     .remove(KEY_COLOR)
+                    .remove("background_crop_zoom")
+                    .remove("background_crop_x")
+                    .remove("background_crop_y")
                     .apply();
             updatePhotoSummary();
             return true;
@@ -267,6 +285,9 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                 .putString(KEY_MODE, "color")
                 .putInt(KEY_COLOR, color)
                 .remove(KEY_URI)
+                .remove("background_crop_zoom")
+                .remove("background_crop_x")
+                .remove("background_crop_y")
                 .apply();
         updatePhotoSummary();
     }

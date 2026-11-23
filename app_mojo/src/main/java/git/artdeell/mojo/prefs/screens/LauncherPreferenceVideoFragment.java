@@ -95,6 +95,15 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     @Override
     public void onResume() {
         super.onResume();
+        SwitchPreferenceCompat fullscreen = findPreference("launcher_fullscreen");
+        if (fullscreen != null) {
+            fullscreen.setOnPreferenceChangeListener((preference, value) -> {
+                if (getView() != null) getView().post(() -> {
+                    if (isAdded()) requireActivity().recreate();
+                });
+                return true;
+            });
+        }
         Activity activity = getActivity();
         if(activity != null) {
             requirePreference("ignoreNotch").setVisible(LauncherPreferences.hasNotch(activity));
