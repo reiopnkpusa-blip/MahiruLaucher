@@ -50,6 +50,7 @@ public class Minecraft3DView extends GLSurfaceView
     private volatile boolean slimArms;
     private volatile Bitmap skinBitmap;
     private volatile boolean skinLoading;
+    private volatile int skinLoadGeneration;
 
     private final List<Box> boxes = new ArrayList<>();
 
@@ -139,6 +140,7 @@ public class Minecraft3DView extends GLSurfaceView
     private void loadSelectedSkin() {
         if (skinLoading || skinBitmap != null) return;
         skinLoading = true;
+        final int generation = ++skinLoadGeneration;
 
         new Thread(() -> {
             HttpURLConnection connection = null;
@@ -154,9 +156,13 @@ public class Minecraft3DView extends GLSurfaceView
                             localSkin.getAbsolutePath());
                     if (local != null && local.getWidth() == 64
                             && local.getHeight() == 64) {
-                        slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
-                                getContext().getApplicationContext()));
-                        skinBitmap = local;
+                        if (generation == skinLoadGeneration) {
+                            slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
+                                    getContext().getApplicationContext()));
+                            skinBitmap = local;
+                        } else {
+                            local.recycle();
+                        }
                         return;
                     }
                     if (local != null) local.recycle();
@@ -234,7 +240,11 @@ public class Minecraft3DView extends GLSurfaceView
                     Bitmap bitmap = BitmapFactory.decodeStream(stream);
                     if (bitmap != null && bitmap.getWidth() == 64
                             && bitmap.getHeight() == 64) {
-                        skinBitmap = bitmap;
+                        if (generation == skinLoadGeneration) {
+                            skinBitmap = bitmap;
+                        } else {
+                            bitmap.recycle();
+                        }
                     } else if (bitmap != null) {
                         bitmap.recycle();
                         Log.w(TAG, "Unsupported Minecraft skin dimensions");
@@ -244,12 +254,14 @@ public class Minecraft3DView extends GLSurfaceView
                 Log.w(TAG, "Could not load Minecraft skin");
             } finally {
                 if (connection != null) connection.disconnect();
-                skinLoading = false;
+                if (generation == skinLoadGeneration) skinLoading = false;
             }
         }, "Mahiru-Skin-Loader").start();
     }
 
     public void reloadSkin() {
+        skinLoadGeneration++;
+        skinLoading = false;
         queueEvent(() -> {
             if (textureId != 0) {
                 GLES20.glDeleteTextures(1, new int[]{textureId}, 0);
