@@ -9,7 +9,7 @@ import static git.artdeell.mojo.game.renderer.def.Renderers.MESA_RENDERER_EXT;
 import static git.artdeell.mojo.game.renderer.def.Renderers.ZINK_RENDERER;
 
 import android.content.Context;
-import android.content.res.Resources;
+import android.content.res.Resources;\nimport androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +44,12 @@ public class RendererCache {
         };
         ArrayList<String> rendererIds = new ArrayList<>(renderers.length);
         ArrayList<String> rendererNames = new ArrayList<>(rendererIds);
-        for (String renderer : renderers) {
+        boolean forceUnsupported = PreferenceManager.getDefaultSharedPreferences(context)\n                .getBoolean("force_unsupported_renderers", false);\n        for (String renderer : renderers) {
             RenderSpec r = GameRenderer.getKnownRenderer(renderer);
             assert r != null;
-            if (!r.compatibleDevice(context)) continue;
+            boolean compatible = r.compatibleDevice(context);\n            if (!compatible && !forceUnsupported) continue;
             rendererIds.add(renderer);
-            rendererNames.add(resources.getString(r.displayName()));
+            rendererNames.add(resources.getString(r.displayName())\n                    + (compatible ? "" : "  •  EXPERIMENTAL"));
         }
         rendererIds.trimToSize();
         rendererNames.trimToSize();

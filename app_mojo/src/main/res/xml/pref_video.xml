@@ -5,6 +5,17 @@
     <git.artdeell.mojo.prefs.BackButtonPreference />
 
     <PreferenceCategory android:title="@string/preference_category_video" >
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="launcher_fullscreen"
+            android:title="Fullscreen"
+            android:summary="Hide system bars while using the launcher"
+            android:defaultValue="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="force_unsupported_renderers"
+            android:title="Force-enable experimental renderers"
+            android:summary="Show renderers even when this device fails compatibility checks. They may crash or show a black screen."
+            android:defaultValue="false" />
         <androidx.preference.ListPreference
             android:title="@string/mcl_setting_category_renderer"
             android:key="renderer"
