@@ -30,8 +30,34 @@ public final class SkinManager {
         return new File(directory, "local-skin.png");
     }
 
+    public static final String PREFS_NAME = "mahiru_skin_settings";
+    public static final String KEY_MODEL = "local_skin_model";
+
+    public static String getLocalSkinVariant(Context context) {
+        String value = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_MODEL, "classic");
+        return "slim".equals(value) ? "slim" : "classic";
+    }
+
+    public static void setLocalSkinVariant(Context context, String variant)
+            throws IOException {
+        if (!"classic".equals(variant) && !"slim".equals(variant)) {
+            throw new IOException("Invalid skin model");
+        }
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putString(KEY_MODEL, variant).apply();
+    }
+
     public static void saveLocalSkin(Context context, Uri uri)
             throws IOException {
+        saveLocalSkin(context, uri, getLocalSkinVariant(context));
+    }
+
+    public static void saveLocalSkin(Context context, Uri uri, String variant)
+            throws IOException {
+        if (!"classic".equals(variant) && !"slim".equals(variant)) {
+            throw new IOException("Invalid skin model");
+        }
         Bitmap bitmap;
         try (InputStream input =
                      context.getContentResolver().openInputStream(uri)) {
@@ -47,11 +73,22 @@ public final class SkinManager {
             }
 
             File output = getLocalSkinFile(context);
-            try (FileOutputStream stream = new FileOutputStream(output)) {
+            File temporary = new File(output.getParentFile(), "local-skin.png.tmp");
+            try (FileOutputStream stream = new FileOutputStream(temporary)) {
                 if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
                     throw new IOException("Could not save skin PNG");
                 }
+                stream.getFD().sync();
             }
+            if (output.exists() && !output.delete()) {
+                temporary.delete();
+                throw new IOException("Could not replace previous skin");
+            }
+            if (!temporary.renameTo(output)) {
+                temporary.delete();
+                throw new IOException("Could not finalize skin PNG");
+            }
+            setLocalSkinVariant(context, variant);
         } finally {
             bitmap.recycle();
         }
