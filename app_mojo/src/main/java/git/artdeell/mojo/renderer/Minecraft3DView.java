@@ -41,6 +41,8 @@ public class Minecraft3DView extends GLSurfaceView
     private int textureId;
 
     private float rotation;
+    private float armAnimation;
+    private volatile boolean slimArms;
     private volatile Bitmap skinBitmap;
     private volatile boolean skinLoading;
 
@@ -71,6 +73,7 @@ public class Minecraft3DView extends GLSurfaceView
         setEGLContextClientVersion(2);
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        slimArms = "slim".equals(SkinManager.getLocalSkinVariant(context));
         loadSelectedSkin();
     }
 
@@ -92,6 +95,8 @@ public class Minecraft3DView extends GLSurfaceView
                             localSkin.getAbsolutePath());
                     if (local != null && local.getWidth() == 64
                             && local.getHeight() == 64) {
+                        slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
+                                getContext().getApplicationContext()));
                         skinBitmap = local;
                         return;
                     }
@@ -147,6 +152,8 @@ public class Minecraft3DView extends GLSurfaceView
                         String candidate = item.optString("url", "");
                         if (!candidate.isEmpty()) {
                             skinUrl = candidate;
+                            String variant = item.optString("variant", "CLASSIC");
+                            slimArms = "SLIM".equalsIgnoreCase(variant);
                             break;
                         }
                     }
@@ -185,7 +192,14 @@ public class Minecraft3DView extends GLSurfaceView
                 GLES20.glDeleteTextures(1, new int[]{textureId}, 0);
                 textureId = 0;
             }
+            Bitmap oldBitmap = skinBitmap;
             skinBitmap = null;
+            if (oldBitmap != null && !oldBitmap.isRecycled()) {
+                oldBitmap.recycle();
+            }
+            slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
+                    getContext().getApplicationContext()));
+            buildPlayerModel();
             skinLoading = false;
             post(this::loadSelectedSkin);
         });
@@ -251,34 +265,49 @@ public class Minecraft3DView extends GLSurfaceView
     private void buildPlayerModel() {
         boxes.clear();
 
-        // Head and its outer hat layer
+        float armWidth = slimArms ? 3f : 4f;
+        float armCenter = slimArms ? 5.5f : 6f;
+
+        // Base and outer head layers. Outer geometry is larger, UV size is unchanged.
         addBox(0, 12, 0, 8, 8, 8, 0, 0);
-        addBox(0, 12, 0, 8.5f, 8.5f, 8.5f, 32, 0);
+        addBox(0, 12, 0, 8.5f, 8.5f, 8.5f, 32, 0, 8, 8, 8, false);
 
-        // Torso and jacket
+        // Torso and jacket.
         addBox(0, 2, 0, 8, 12, 4, 16, 16);
-        addBox(0, 2, 0, 8.5f, 12.5f, 4.5f, 16, 32);
+        addBox(0, 2, 0, 8.5f, 12.5f, 4.5f, 16, 32, 8, 12, 4, false);
 
-        // Right arm and sleeve
-        addBox(-6, 2, 0, 4, 12, 4, 40, 16);
-        addBox(-6, 2, 0, 4.5f, 12.5f, 4.5f, 40, 32);
+        // Right arm: 4 px Classic or 3 px Slim. The two arm layers swing together.
+        addBox(-armCenter, 2, 0, armWidth, 12, 4,
+                40, 16, armWidth, 12, 4, true);
+        addBox(-armCenter, 2, 0, armWidth + 0.5f, 12.5f, 4.5f,
+                40, 32, armWidth, 12, 4, true);
 
-        // Left arm and sleeve (classic 4-pixel arm)
-        addBox(6, 2, 0, 4, 12, 4, 32, 48);
-        addBox(6, 2, 0, 4.5f, 12.5f, 4.5f, 48, 48);
+        // Left arm.
+        addBox(armCenter, 2, 0, armWidth, 12, 4,
+                32, 48, armWidth, 12, 4, false);
+        addBox(armCenter, 2, 0, armWidth + 0.5f, 12.5f, 4.5f,
+                48, 48, armWidth, 12, 4, false);
 
-        // Legs and outer trouser layers
+        // Legs and outer trouser layers.
         addBox(-2, -10, 0, 4, 12, 4, 0, 16);
-        addBox(-2, -10, 0, 4.5f, 12.5f, 4.5f, 0, 32);
-
+        addBox(-2, -10, 0, 4.5f, 12.5f, 4.5f,
+                0, 32, 4, 12, 4, false);
         addBox(2, -10, 0, 4, 12, 4, 16, 48);
-        addBox(2, -10, 0, 4.5f, 12.5f, 4.5f, 0, 48);
+        addBox(2, -10, 0, 4.5f, 12.5f, 4.5f,
+                0, 48, 4, 12, 4, false);
+    }
+
+    private void addBox(float x, float y, float z,
+                        float w, float h, float d, int u, int v) {
+        addBox(x, y, z, w, h, d, u, v, w, h, d, false);
     }
 
     private void addBox(float x, float y, float z,
                         float w, float h, float d,
-                        int u, int v) {
-        boxes.add(new Box(x, y, z, w, h, d, u, v));
+                        int u, int v, float uvW, float uvH, float uvD,
+                        boolean animatedArm) {
+        boxes.add(new Box(x, y, z, w, h, d,
+                u, v, uvW, uvH, uvD, animatedArm));
     }
 
     private static float texU(float pixel) {
@@ -293,11 +322,15 @@ public class Minecraft3DView extends GLSurfaceView
         final float x, y, z;
         final FloatBuffer buffer;
 
+        final boolean animatedArm;
+
         Box(float x, float y, float z,
-            float w, float h, float d, int u, int v) {
+            float w, float h, float d, int u, int v,
+            float uvW, float uvH, float uvD, boolean animatedArm) {
             this.x = x;
             this.y = y;
             this.z = z;
+            this.animatedArm = animatedArm;
 
             float[] data = new float[36 * 5];
             int[] index = {0};
@@ -309,27 +342,27 @@ public class Minecraft3DView extends GLSurfaceView
             // Standard Minecraft skin atlas cuboid layout
             face(data, index,
                     new float[]{x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1},
-                    u+d, v+d, w, h);
+                    u+d, v+d, uvW, uvH);
 
             face(data, index,
                     new float[]{x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0},
-                    u+d+w+d, v+d, w, h);
+                    u+d+uvW+d, v+d, uvW, uvH);
 
             face(data, index,
                     new float[]{x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1},
-                    u, v+d, d, h);
+                    u, v+d, uvD, uvH);
 
             face(data, index,
                     new float[]{x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0},
-                    u+d+w, v+d, d, h);
+                    u+d+uvW, v+d, uvD, uvH);
 
             face(data, index,
                     new float[]{x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z0},
-                    u+d, v, w, d);
+                    u+d, v, uvW, uvD);
 
             face(data, index,
                     new float[]{x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1},
-                    u+d+w, v, w, d);
+                    u+d+uvW, v, uvW, uvD);
 
             ByteBuffer bb = ByteBuffer.allocateDirect(data.length * 4);
             bb.order(ByteOrder.nativeOrder());
@@ -400,7 +433,7 @@ public class Minecraft3DView extends GLSurfaceView
                 -ratio, ratio, -1, 1, 2, 30);
 
         Matrix.setLookAtM(view, 0,
-                0, 0, 7.5f,
+                0, 0, 6.4f,
                 0, 0, 0,
                 0, 1, 0);
     }
@@ -426,8 +459,17 @@ public class Minecraft3DView extends GLSurfaceView
 
         for (Box box : boxes) {
             Matrix.setIdentityM(temp, 0);
-            Matrix.translateM(temp, 0,
-                    box.x * UNIT, box.y * UNIT, box.z * UNIT);
+            if (box.animatedArm) {
+                float swing = (float) Math.sin(armAnimation) * 18f;
+                Matrix.translateM(temp, 0,
+                        box.x * UNIT, 8f * UNIT, box.z * UNIT);
+                Matrix.rotateM(temp, 0, swing, 1f, 0f, 0f);
+                Matrix.translateM(temp, 0, 0f,
+                        (box.y - 8f) * UNIT, 0f);
+            } else {
+                Matrix.translateM(temp, 0,
+                        box.x * UNIT, box.y * UNIT, box.z * UNIT);
+            }
             Matrix.scaleM(temp, 0, UNIT, UNIT, UNIT);
 
             float[] part = new float[16];
@@ -437,7 +479,6 @@ public class Minecraft3DView extends GLSurfaceView
 
             GLES20.glUniformMatrix4fv(matrixHandle, 1, false, part, 0);
 
-            box.buffer.position(0);
             box.buffer.position(0);
             GLES20.glEnableVertexAttribArray(positionHandle);
             GLES20.glEnableVertexAttribArray(uvHandle);
@@ -458,5 +499,6 @@ public class Minecraft3DView extends GLSurfaceView
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
         rotation += 0.28f;
+        armAnimation += 0.045f;
     }
 }
