@@ -27,6 +27,13 @@
             android:defaultValue="classic"
             app:iconSpaceReserved="false" />
 
+        <Preference
+            android:key="mahiru_appearance_screen"
+            android:title="Background &amp; Colors"
+            android:summary="Choose a background photo, set a color, or reset the default anime background"
+            android:fragment="git.artdeell.mojo.prefs.screens.MahiruAppearanceFragment"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
