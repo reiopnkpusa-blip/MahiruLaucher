@@ -155,7 +155,12 @@ public class Minecraft3DView extends GLSurfaceView
                 java.io.File localSkin = SkinManager.getLocalSkinFile(
                         getContext().getApplicationContext());
 
-                if (localSkin.isFile()) {
+                boolean useLocalSkin = account == null || account.isLocal()
+                        || account.authType != git.artdeell.mojo.authenticator.AuthType.MICROSOFT
+                        || account.accessToken == null
+                        || account.accessToken.trim().isEmpty()
+                        || "0".equals(account.accessToken);
+                if (localSkin.isFile() && useLocalSkin) {
                     Bitmap local = BitmapFactory.decodeFile(
                             localSkin.getAbsolutePath());
                     if (local != null && local.getWidth() == 64
