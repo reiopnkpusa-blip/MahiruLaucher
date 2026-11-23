@@ -30,6 +30,7 @@ import git.artdeell.mojo.extra.ExtraConstants;
 import git.artdeell.mojo.extra.ExtraCore;
 import git.artdeell.mojo.extra.ExtraListener;
 import git.artdeell.mojo.fragments.MainMenuFragment;
+import git.artdeell.mojo.fragments.MahiruStoreFragment;
 import git.artdeell.mojo.fragments.MicrosoftLoginFragment;
 import git.artdeell.mojo.fragments.SelectAuthFragment;
 import git.artdeell.mojo.instances.Instance;
@@ -54,6 +55,7 @@ public class LauncherActivity extends BaseActivity {
     private FragmentContainerView mFragmentView;
     private ImageButton mSettingsButton;
     private ImageButton mDownloadManagerButton;
+    private ImageButton mStoreButton;
     private ProgressLayout mProgressLayout;
     private ProgressServiceKeeper mProgressServiceKeeper;
     private NotificationManager mNotificationManager;
@@ -189,6 +191,14 @@ public class LauncherActivity extends BaseActivity {
 
         mSettingsButton.setOnClickListener(mSettingButtonListener);
         mDownloadManagerButton.setOnClickListener(v -> DownloadManagerDialog.show(this));
+        mStoreButton.setOnClickListener(v -> {
+            FragmentManager manager = getSupportFragmentManager();
+            if (manager.isStateSaved()) return;
+            manager.beginTransaction()
+                    .replace(mFragmentView.getId(), new MahiruStoreFragment(), MahiruStoreFragment.TAG)
+                    .addToBackStack(MahiruStoreFragment.TAG)
+                    .commit();
+        });
         ProgressKeeper.addTaskCountListener(mProgressLayout);
         ExtraCore.addExtraListener(ExtraConstants.BACK_PREFERENCE, mBackPreferenceListener);
         ExtraCore.addExtraListener(ExtraConstants.SELECT_AUTH_METHOD, mSelectAuthMethod);
@@ -329,6 +339,7 @@ public class LauncherActivity extends BaseActivity {
         mFragmentView = findViewById(R.id.container_fragment);
         mSettingsButton = findViewById(R.id.setting_button);
         mDownloadManagerButton = findViewById(R.id.download_manager_button);
+        mStoreButton = findViewById(R.id.store_button);
         mProgressLayout = findViewById(R.id.progress_layout);
     }
 }
