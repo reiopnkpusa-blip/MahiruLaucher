@@ -47,6 +47,7 @@ public class MainMenuFragment extends Fragment {
 
     private mcVersionSpinner mVersionSpinner;
     private Minecraft3DView mLobby3DView;
+    private String mPendingSkinVariant = "classic";
 
     private final ActivityResultLauncher<String> mSkinPickerLauncher =
             registerForActivityResult(
@@ -54,7 +55,7 @@ public class MainMenuFragment extends Fragment {
                     uri -> {
                         if (uri == null || !isAdded()) return;
                         try {
-                            SkinManager.saveLocalSkin(requireContext(), uri);
+                            SkinManager.saveLocalSkin(requireContext(), uri, mPendingSkinVariant);
                             if (mLobby3DView != null) mLobby3DView.reloadSkin();
                             Toast.makeText(requireContext(),
                                     "Local skin imported successfully",
@@ -212,7 +213,20 @@ public class MainMenuFragment extends Fragment {
                 .setTitle("Skin Manager")
                 .setItems(choices, (dialog, which) -> {
                     if (which == 0) {
-                        mSkinPickerLauncher.launch("image/png");
+                        final int[] selectedModel = {0};
+                        new AlertDialog.Builder(requireContext())
+                                .setTitle("Choose Skin Model")
+                                .setSingleChoiceItems(
+                                        new String[]{"Classic (4-pixel arms)", "Slim / Alex (3-pixel arms)"},
+                                        0,
+                                        (d, index) -> selectedModel[0] = index)
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Choose PNG", (d, index) -> {
+                                    mPendingSkinVariant = selectedModel[0] == 0
+                                            ? "classic" : "slim";
+                                    mSkinPickerLauncher.launch("image/png");
+                                })
+                                .show();
                     } else if (which == 1) {
                         Account account = Accounts.getCurrent();
                         if (account == null || account.isLocal()
