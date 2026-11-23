@@ -24,6 +24,7 @@ public class MahiruHomeLayout extends ConstraintLayout
     private static final String KEY_MODE = "background_mode";
     private static final String KEY_URI = "background_uri";
     private static final String KEY_COLOR = "background_color";
+    private static final String KEY_BLUR = "background_blur";
     private static final String MODE_DEFAULT = "default";
     private static final String MODE_PHOTO = "photo";
     private static final String MODE_COLOR = "color";
@@ -71,7 +72,7 @@ public class MahiruHomeLayout extends ConstraintLayout
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        if (KEY_MODE.equals(key) || KEY_URI.equals(key) || KEY_COLOR.equals(key)) {
+        if (KEY_MODE.equals(key) || KEY_URI.equals(key) || KEY_COLOR.equals(key) || KEY_BLUR.equals(key)) {
             applyAppearance();
         }
     }
@@ -94,11 +95,22 @@ public class MahiruHomeLayout extends ConstraintLayout
                 backgroundImage.setImageDrawable(null);
                 return;
             }
-            try {
-                backgroundImage.setImageURI(Uri.parse(saved));
-            } catch (Exception e) {
-                backgroundImage.setImageDrawable(null);
-            }
+            new Thread(() -> {
+                Bitmap photo = null;
+                try (InputStream input = getContext().getContentResolver()
+                        .openInputStream(Uri.parse(saved))) {
+                    if (input != null) photo = BitmapFactory.decodeStream(input);
+                } catch (Exception ignored) { }
+                final Bitmap result = applyConfiguredBlur(photo);
+                post(() -> {
+                    if (token != loadToken || backgroundImage == null) {
+                        if (result != null && !result.isRecycled()) result.recycle();
+                        return;
+                    }
+                    if (result != null) backgroundImage.setImageBitmap(applyConfiguredBlur(result));
+                    else backgroundImage.setImageDrawable(null);
+                });
+            }, "Mahiru-Custom-Background").start();
             return;
         }
 
@@ -140,6 +152,46 @@ public class MahiruHomeLayout extends ConstraintLayout
                 if (result != null) backgroundImage.setImageBitmap(result);
             });
         }, "Mahiru-Default-Background").start();
+    }
+
+    private Bitmap applyConfiguredBlur(Bitmap source) {
+        if (source == null) return null;
+        int percent = preferences.getInt(KEY_BLUR, 0);
+        if (percent <= 0) return source;
+        int maxSide = 512;
+        float scale = Math.min(1f, maxSide / (float) Math.max(source.getWidth(), source.getHeight()));
+        int width = Math.max(1, Math.round(source.getWidth() * scale));
+        int height = Math.max(1, Math.round(source.getHeight() * scale));
+        Bitmap working = Bitmap.createScaledBitmap(source, width, height, true);
+        if (working != source && !source.isRecycled()) source.recycle();
+        int radius = Math.max(1, Math.round(percent * 0.16f));
+        int[] pixels = new int[width * height];
+        int[] temp = new int[width * height];
+        working.getPixels(pixels, 0, width, 0, 0, width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                long a=0, r=0, g=0, b=0; int n=0;
+                for (int k=Math.max(0,x-radius); k<=Math.min(width-1,x+radius); k++) {
+                    int color=pixels[y*width+k]; a+=(color>>>24)&255;
+                    r+=(color>>>16)&255; g+=(color>>>8)&255; b+=color&255; n++;
+                }
+                temp[y*width+x]=((int)(a/n)<<24)|((int)(r/n)<<16)|((int)(g/n)<<8)|(int)(b/n);
+            }
+        }
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                long a=0, r=0, g=0, b=0; int n=0;
+                for (int k=Math.max(0,y-radius); k<=Math.min(height-1,y+radius); k++) {
+                    int color=temp[k*width+x]; a+=(color>>>24)&255;
+                    r+=(color>>>16)&255; g+=(color>>>8)&255; b+=color&255; n++;
+                }
+                pixels[y*width+x]=((int)(a/n)<<24)|((int)(r/n)<<16)|((int)(g/n)<<8)|(int)(b/n);
+            }
+        }
+        Bitmap blurred = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        blurred.setPixels(pixels, 0, width, 0, 0, width, height);
+        if (working != blurred && !working.isRecycled()) working.recycle();
+        return blurred;
     }
 
     private static byte[] readAll(InputStream input) throws Exception {
