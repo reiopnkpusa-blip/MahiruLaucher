@@ -177,7 +177,12 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
                 if(androidCompat) {
                     // AndroidX keeps SystemUI visible for some reason after IME session
                     view.postDelayed(() -> {
-                        view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                        // Re-apply the user's in-game fullscreen preference after the IME closes.
+                        // Do not force fullscreen here: the player may have disabled it in settings.
+                        if (!isFinishing() && !isDestroyed()) {
+                            Tools.setInsetsMode(GameActivity.this,
+                                    setFullscreen(), shouldIgnoreNotch());
+                        }
                     }, 150);
                 }
                 return insets;
