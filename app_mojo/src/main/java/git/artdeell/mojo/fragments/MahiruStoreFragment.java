@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LayoutAnimationController;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -236,6 +239,10 @@ public class MahiruStoreFragment extends Fragment {
                 return row;
             }
         };
+        LayoutAnimationController listAnimation = new LayoutAnimationController(
+                new AlphaAnimation(0f, 1f), 0.035f);
+        listAnimation.setInterpolator(new DecelerateInterpolator());
+        resultList.setLayoutAnimation(listAnimation);
         resultList.setAdapter(resultAdapter);
         content.addView(resultList, new LinearLayout.LayoutParams(-1, 0, 1));
 
