@@ -190,7 +190,7 @@
     <string name="pedit_java_runtime">Java Runtime</string>
     <string name="pedit_renderer">رندر کننده</string>
     <string name="notif_channel_name">عمومی</string>
-    <string name="lazy_service_default_title">سرویس پیش‌زمینه MJ</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">نصب شد</string>
     <string name="use_global_default">(از پیش‌فرض استفاده کنید)</string>
     <string name="progresslayout_tasks_in_progress">%d وظیفه در حال انجام</string>
@@ -238,7 +238,7 @@
     <string name="modpack_download_downloading_mods">درحال دانلود مادها (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">درحال دانلود ماد ها (File %d out of %d)</string>
     <string name="modpack_download_applying_overrides">اعمال جایگزین ها (%d/%d)</string>
-    <string name="modpack_install_notification_title">نصب کننده مادپک پوجاو</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">برای اتمام نصب مادپک اینجا کلیک کنید</string>
     <string name="modpack_install_notification_data_not_available">ناموفق در دانلود اطلاعات اجرا کننده ماد</string>
     <string name="modpack_install_modloader_download_failed">ناموفق در دانلود فایل‌های اجراکننده ماد</string>

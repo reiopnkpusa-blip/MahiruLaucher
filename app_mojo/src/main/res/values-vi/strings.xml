@@ -231,7 +231,7 @@
     <string name="color_default_hex" translatable="false">FFFF0000</string>
     <string name="notif_channel_name">Chung</string>
     <string name="notif_channel_id" translatable="false">channel_id</string>
-    <string name="lazy_service_default_title">Dịch vụ tiền cảnh MJ</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">Đã cài đặt</string>
     <string name="use_global_default">(Sử dụng mặc định chung)</string>
     <string name="default_control">Bố cục bố cục điều khiển mặc định</string>
@@ -326,7 +326,7 @@
     <string name="modpack_download_downloading_mods">Đang tải mod (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">Đang tải mod (Tệp %d trên %d)</string>
     <string name="modpack_download_applying_overrides">Áp dụng các thay đổi (%d/%d)</string>
-    <string name="modpack_install_notification_title">Trình cài đặt modpack</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">Nhấn để hoàn thành cài đặt modpack</string>
     <string name="modpack_install_notification_data_not_available">Không thể tải thông tin trình cài đặt mod</string>
     <string name="modpack_install_modloader_download_failed">Không thể tải các tệp của trình cài đặt mod</string>

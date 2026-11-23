@@ -5,6 +5,7 @@ import static git.artdeell.mojo.Tools.shareLog;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
@@ -14,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +34,10 @@ import git.artdeell.mojo.instances.Instance;
 import git.artdeell.mojo.instances.Instances;
 import git.artdeell.mojo.prefs.LauncherPreferences;
 import git.artdeell.mojo.renderer.Minecraft3DView;
+import git.artdeell.mojo.renderer.SkinManager;
+import git.artdeell.mojo.authenticator.AuthType;
+import git.artdeell.mojo.authenticator.accounts.Account;
+import git.artdeell.mojo.authenticator.accounts.Accounts;
 import git.artdeell.mojo.utils.FileUtils;
 
 import java.io.File;
@@ -41,6 +47,25 @@ public class MainMenuFragment extends Fragment {
 
     private mcVersionSpinner mVersionSpinner;
     private Minecraft3DView mLobby3DView;
+
+    private final ActivityResultLauncher<String> mSkinPickerLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri == null || !isAdded()) return;
+                        try {
+                            SkinManager.saveLocalSkin(requireContext(), uri);
+                            if (mLobby3DView != null) mLobby3DView.reloadSkin();
+                            Toast.makeText(requireContext(),
+                                    "Local skin imported successfully",
+                                    Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Toast.makeText(requireContext(),
+                                    "Skin import failed: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+
 
     private final ActivityResultLauncher<Object> mModInstallerLauncher =
             registerForActivityResult(
@@ -131,7 +156,8 @@ public class MainMenuFragment extends Fragment {
         moreButton.setOnClickListener(v -> {
             String[] items = {
                     "Guide", "Discord", "Controller",
-                    "Extract JAR", "Share Logs", "Game Files"
+                    "Extract JAR", "Share Logs", "Game Files",
+                    "Skin Manager"
             };
             new AlertDialog.Builder(requireContext())
                     .setTitle("Mahiru Launcher")
@@ -143,6 +169,7 @@ public class MainMenuFragment extends Fragment {
                             case 3: mInstallJarButton.performClick(); break;
                             case 4: mShareLogsButton.performClick(); break;
                             case 5: mOpenDirectoryButton.performClick(); break;
+                            case 6: showSkinManager(); break;
                         }
                     })
                     .show();
@@ -172,6 +199,68 @@ public class MainMenuFragment extends Fragment {
             animateEntrance(mEditProfileButton, 220);
             animateEntrance(mPlayButton, 260);
         }
+    }
+
+    private void showSkinManager() {
+        String[] choices = {
+                "Import Local PNG Skin",
+                "Upload Local Skin to Premium Account",
+                "Refresh 3D Preview"
+        };
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Skin Manager")
+                .setItems(choices, (dialog, which) -> {
+                    if (which == 0) {
+                        mSkinPickerLauncher.launch("image/png");
+                    } else if (which == 1) {
+                        Account account = Accounts.getCurrent();
+                        if (account == null || account.isLocal()
+                                || account.authType != AuthType.MICROSOFT) {
+                            Toast.makeText(requireContext(),
+                                    "Please select a Minecraft Premium account first",
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        final int[] selectedModel = {0};
+                        new AlertDialog.Builder(requireContext())
+                                .setTitle("Choose Skin Model")
+                                .setSingleChoiceItems(
+                                        new String[]{"Classic", "Slim"},
+                                        0,
+                                        (d, index) -> selectedModel[0] = index)
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Upload", (d, index) -> {
+                                    String variant = selectedModel[0] == 0
+                                            ? "classic" : "slim";
+
+                                    Context context = requireContext();
+                                    new Thread(() -> {
+                                        String message;
+                                        try {
+                                            SkinManager.uploadLocalSkin(
+                                                    context, account, variant);
+                                            message = "Skin uploaded successfully";
+                                        } catch (Exception e) {
+                                            message = "Upload failed: " + e.getMessage();
+                                        }
+
+                                        final String result = message;
+                                        if (isAdded()) {
+                                            requireActivity().runOnUiThread(() ->
+                                                    Toast.makeText(requireContext(),
+                                                            result,
+                                                            Toast.LENGTH_LONG).show());
+                                        }
+                                    }, "Mahiru-Skin-Upload").start();
+                                })
+                                .show();
+                    } else if (which == 2) {
+                        if (mLobby3DView != null) mLobby3DView.reloadSkin();
+                    }
+                })
+                .show();
     }
 
     private void animateEntrance(@NonNull View target, long delay) {

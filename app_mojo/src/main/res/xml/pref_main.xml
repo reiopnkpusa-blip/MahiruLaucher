@@ -1,84 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app2="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    app:key=""
-    >
+    app:key="">
 
-    <git.artdeell.mojo.prefs.BackButtonPreference />
+    <git.artdeell.mojo.prefs.BackButtonPreference
+        app:iconSpaceReserved="false" />
 
     <PreferenceCategory
-        android:title="@string/preference_category_appearance">
+        android:title="MAHIRU • PERSONALIZATION"
+        app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
             android:key="startup_animation"
             android:title="@string/preference_startup_animation_title"
             android:summary="@string/preference_startup_animation_description"
-            android:defaultValue="true" />
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/preference_category_main_categories"
-        >
+        android:title="GAME CONFIGURATION"
+        app:iconSpaceReserved="false">
 
         <Preference
             android:key="video_screen_setting"
             android:title="@string/preference_video_title"
             android:summary="@string/preference_video_description"
             android:fragment="git.artdeell.mojo.prefs.screens.LauncherPreferenceVideoFragment"
-            android:icon="@drawable/ic_px_image"
-            />
+            android:icon="@drawable/ic_px_image" />
 
         <Preference
             android:key="control_screen_setting"
             android:title="@string/preference_control_title"
             android:summary="@string/preference_control_description"
             android:fragment="git.artdeell.mojo.prefs.screens.LauncherPreferenceControlFragment"
-            android:icon="@drawable/ic_px_gamepad"
-            />
+            android:icon="@drawable/ic_px_gamepad" />
 
         <Preference
             android:key="java_screen_setting"
             android:title="@string/preference_java_title"
             android:summary="@string/preference_java_description"
             android:fragment="git.artdeell.mojo.prefs.screens.LauncherPreferenceJavaFragment"
-            android:icon="@drawable/ic_px_java"
-            />
+            android:icon="@drawable/ic_px_java" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="ADVANCED OPTIONS"
+        app:iconSpaceReserved="false">
 
         <Preference
             android:key="misc_screen_setting"
             android:title="@string/preference_misc_title"
             android:summary="@string/preference_misc_description"
             android:fragment="git.artdeell.mojo.prefs.screens.LauncherPreferenceMiscellaneousFragment"
-            android:icon="@drawable/ic_px_alt_sliders"
-            />
-
+            android:icon="@drawable/ic_px_alt_sliders" />
 
         <Preference
             android:key="experimental_screen_setting"
             android:title="@string/preference_experimental_title"
             android:summary="@string/preference_experimental_description"
             android:fragment="git.artdeell.mojo.prefs.screens.LauncherPreferenceExperimentalFragment"
-            android:icon="@drawable/ic_px_experiment"/>
+            android:icon="@drawable/ic_px_experiment" />
+
     </PreferenceCategory>
 
-    <SwitchPreferenceCompat
-        android:title="@string/preference_force_english_title"
-        android:key="force_english"
-        android:summary="@string/preference_force_english_description"
-        android:icon="@drawable/ic_px_translate"/>
+    <PreferenceCategory
+        android:title="LANGUAGE &amp; NOTIFICATIONS"
+        app:iconSpaceReserved="false">
 
-    <Preference
-        android:title="@string/preference_ask_for_notification_title"
-        android:summary="@string/preference_ask_for_notification_description"
-        android:key="notification_permission_request"
-        android:icon="@drawable/ic_px_bell"
-        />
+        <SwitchPreferenceCompat
+            android:title="@string/preference_force_english_title"
+            android:key="force_english"
+            android:summary="@string/preference_force_english_description"
+            android:icon="@drawable/ic_px_translate"
+            app:iconSpaceReserved="false" />
 
+        <Preference
+            android:title="@string/preference_ask_for_notification_title"
+            android:summary="@string/preference_ask_for_notification_description"
+            android:key="notification_permission_request"
+            android:icon="@drawable/ic_px_bell" />
 
-
-
+    </PreferenceCategory>
 
 </PreferenceScreen>

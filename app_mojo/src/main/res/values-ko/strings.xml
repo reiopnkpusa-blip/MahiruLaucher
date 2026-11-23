@@ -198,7 +198,7 @@
     <string name="pedit_java_runtime">Java 런타임</string>
     <string name="pedit_renderer">렌더러</string>
     <string name="notif_channel_name">일반</string>
-    <string name="lazy_service_default_title">MJ 포그라운드 서비스</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">이미 설치되어 있는 버전입니다.</string>
     <string name="use_global_default">(글로벌 기본값 사용)</string>
     <string name="default_control">기본 조작</string>
@@ -278,7 +278,7 @@
     <string name="modpack_download_downloading_mods">모드 다운로드중 (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">모드 다운로드중 (%d중 파일 %d)</string>
     <string name="modpack_download_applying_overrides">덮어쓰는 중 (%d/%d)</string>
-    <string name="modpack_install_notification_title">모드팩 인스톨러</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">여기를 눌러 모드팩 다운로드를 끝냅니다.</string>
     <string name="modpack_install_notification_data_not_available">모드 로더 정보 다운로드 실패</string>
     <string name="modpack_install_modloader_download_failed">모드 로더 파일 다운로드 실패</string>

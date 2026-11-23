@@ -192,7 +192,7 @@
     <string name="pedit_java_runtime">Среда выполнения Java</string>
     <string name="pedit_renderer">Визуализатор</string>
     <string name="notif_channel_name">Общее</string>
-    <string name="lazy_service_default_title">Активная служба MJ</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">Установленные</string>
     <string name="use_global_default">(Как везде)</string>
     <string name="default_control">Раскладка управления</string>
@@ -285,7 +285,7 @@
     <string name="modpack_download_downloading_mods">Загрузка модов (%.2f МБ / %.2f МБ)</string>
     <string name="modpack_download_downloading_mods_fc">Загрузка модов (файл %d из %d)</string>
     <string name="modpack_download_applying_overrides">Перезапись параметров (%d/%d)</string>
-    <string name="modpack_install_notification_title">Установка сборки MahiruLauncher</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">Нажмите для завершения установки сборки</string>
     <string name="modpack_install_notification_data_not_available">Не удалось загрузить информацию о загрузчике модов</string>
     <string name="modpack_install_modloader_download_failed">Не удалось загрузить файлы загрузчика модов</string>

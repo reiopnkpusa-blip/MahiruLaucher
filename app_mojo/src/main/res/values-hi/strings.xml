@@ -236,7 +236,7 @@
     <string name="color_default_hex" translatable="false">FFFF0000</string>
     <string name="notif_channel_name">सामान्य</string>
     <string name="notif_channel_id" translatable="false">channel_id</string>
-    <string name="lazy_service_default_title">मोजो फोरग्राउंड सर्विस</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">इंस्टॉल किया गया</string>
     <string name="use_global_default">(ग्लोबल डिफ़ॉल्ट का उपयोग करें)</string>
     <string name="default_control">डिफ़ॉल्ट कंट्रोलमैप</string>
@@ -333,7 +333,7 @@
     <string name="modpack_download_downloading_mods">मॉड्स डाउनलोड हो रहे हैं (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">मॉड्स डाउनलोड हो रहे हैं (फ़ाइल %d/%d)</string>
     <string name="modpack_download_applying_overrides">ओवरराइड्स लागू हो रहे हैं (%d/%d)</string>
-    <string name="modpack_install_notification_title">मोजो मॉडपैक इंस्टॉलर</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">मॉडपैक इंस्टॉलेशन पूरा करने के लिए यहां क्लिक करें</string>
     <string name="modpack_install_notification_data_not_available">मॉड लोडर जानकारी डाउनलोड करने में विफल</string>
     <string name="modpack_install_modloader_download_failed">मॉड लोडर फ़ाइलें डाउनलोड करने में विफल</string>

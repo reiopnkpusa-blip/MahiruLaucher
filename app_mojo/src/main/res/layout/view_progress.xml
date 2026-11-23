@@ -8,7 +8,7 @@
         android:layout_width="@dimen/_40sdp"
         android:layout_height="@dimen/_30sdp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"  android:indeterminateTint="#FFFF5C9A" android:progressTint="#FFFF5C9A"/>
 
     <TextView
         android:id="@+id/progress_textview"

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app"
+    android:background="#FF120D16"
     android:orientation="vertical"
     >
     <ScrollView
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/profiles_profile_name"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_instance_name"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_instance_name" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_instance_name"  android:textColor="#FFF8EDF3"/>
 
             <EditText
                 android:id="@+id/vprof_editor_instance_name"
@@ -61,7 +61,7 @@
                 android:hint="@string/unnamed"
                 android:inputType="textPersonName"
                 android:paddingHorizontal="@dimen/padding_heavy"
-                app:layout_constraintTop_toBottomOf="@id/vprof_editor_instance_icon" />
+                app:layout_constraintTop_toBottomOf="@id/vprof_editor_instance_icon"  android:textColor="#FFF8EDF3" android:hintTextColor="#FFBFAEBA"/>
 
 
             <TextView
@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/profiles_profile_version"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_version_spinner"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_version_spinner" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_version_spinner"  android:textColor="#FFF8EDF3"/>
 
             <TextView
                 android:id="@+id/vprof_editor_version_spinner"
@@ -85,7 +85,7 @@
 
                 app:layout_constraintEnd_toStartOf="@+id/vprof_editor_version_button"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_instance_name" />
+                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_instance_name"  android:textColor="#FFF8EDF3"/>
 
             <Button
                 android:id="@+id/vprof_editor_version_button"
@@ -99,7 +99,7 @@
 
                 app:layout_constraintBottom_toBottomOf="@+id/vprof_editor_version_spinner"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/vprof_editor_version_spinner" />
+                app:layout_constraintTop_toTopOf="@+id/vprof_editor_version_spinner"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
 
             <TextView
@@ -108,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/default_control"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_ctrl_spinner"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_ctrl_spinner" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_ctrl_spinner"  android:textColor="#FFF8EDF3"/>
 
             <TextView
                 android:id="@+id/vprof_editor_ctrl_spinner"
@@ -124,7 +124,7 @@
 
                 app:layout_constraintEnd_toStartOf="@id/vprof_editor_ctrl_button"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_version_spinner" />
+                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_version_spinner"  android:textColor="#FFF8EDF3"/>
 
             <Button
                 android:id="@+id/vprof_editor_ctrl_button"
@@ -136,14 +136,14 @@
 
                 app:layout_constraintBottom_toBottomOf="@id/vprof_editor_ctrl_spinner"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/vprof_editor_ctrl_spinner" />
+                app:layout_constraintTop_toTopOf="@id/vprof_editor_ctrl_spinner"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/instance_shared_data"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_data_checkbox_container"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_data_checkbox_container"/>
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_data_checkbox_container" android:textColor="#FFF8EDF3"/>
 
             <CheckBox
                 android:id="@+id/vprof_editor_data_checkbox_container"
@@ -156,7 +156,7 @@
                 android:text="@string/instance_shared_data_off"
                 android:textColor="@color/checkbox_text_color"
                 app:layout_constraintTop_toBottomOf="@+id/vprof_editor_ctrl_spinner"
-                tools:layout_editor_absoluteX="22dp"/>
+                tools:layout_editor_absoluteX="22dp" android:buttonTint="#FFFF5C9A"/>
 
 
             <TextView
@@ -165,7 +165,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pvc_jvmArgs"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_jre_args"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_jre_args" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_jre_args"  android:textColor="#FFF8EDF3"/>
 
             <EditText
                 android:id="@+id/vprof_editor_jre_args"
@@ -179,7 +179,7 @@
                 android:paddingHorizontal="@dimen/padding_heavy"
                 android:textSize="@dimen/_13ssp"
 
-                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_data_checkbox_container" />
+                app:layout_constraintTop_toBottomOf="@+id/vprof_editor_data_checkbox_container"  android:textColor="#FFF8EDF3" android:hintTextColor="#FFBFAEBA"/>
 
             <TextView
                 android:id="@+id/textView2"
@@ -187,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pedit_java_runtime"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_spinner_runtime"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_spinner_runtime" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_spinner_runtime"  android:textColor="#FFF8EDF3"/>
 
             <Spinner
                 android:id="@+id/vprof_editor_spinner_runtime"
@@ -217,7 +217,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pedit_renderer"
                 app:layout_constraintBottom_toTopOf="@+id/vprof_editor_instance_renderer"
-                app:layout_constraintStart_toStartOf="@+id/vprof_editor_instance_renderer" />
+                app:layout_constraintStart_toStartOf="@+id/vprof_editor_instance_renderer"  android:textColor="#FFF8EDF3"/>
 
             <Spinner
                 android:id="@+id/vprof_editor_instance_renderer"
@@ -259,7 +259,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/global_save"
-            android:layout_marginEnd="@dimen/padding_medium" />
+            android:layout_marginEnd="@dimen/padding_medium"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/vprof_editor_delete_button"
@@ -267,6 +267,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/padding_medium"
-            android:text="@string/global_delete" />
+            android:text="@string/global_delete"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
     </LinearLayout>
 </LinearLayout>

@@ -86,7 +86,8 @@
 					android:id="@+id/main_loading_screen_progress"
 					android:layout_width="24dp"
 					android:layout_height="24dp"
-					android:indeterminate="true" />
+					android:indeterminate="true"
+        android:indeterminateTint="@color/minebutton_color" />
 
 				<TextView
 					android:id="@+id/main_loading_screen_text"

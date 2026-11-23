@@ -83,53 +83,113 @@ public class Minecraft3DView extends GLSurfaceView
             try {
                 Account account = Accounts.getCurrent();
 
+                // A local skin takes priority for every account type.
+                java.io.File localSkin = SkinManager.getLocalSkinFile(
+                        getContext().getApplicationContext());
+
+                if (localSkin.isFile()) {
+                    Bitmap local = BitmapFactory.decodeFile(
+                            localSkin.getAbsolutePath());
+                    if (local != null && local.getWidth() == 64
+                            && local.getHeight() == 64) {
+                        skinBitmap = local;
+                        return;
+                    }
+                    if (local != null) local.recycle();
+                }
+
+                // Only official Microsoft/Minecraft accounts are supported here.
                 if (account == null || account.isLocal()
-                        || account.authType == null
-                        || account.authType.skinUrl == null) {
-                    Log.i(TAG, "Selected account has no remote skin URL");
+                        || account.authType !=
+                        git.artdeell.mojo.authenticator.AuthType.MICROSOFT
+                        || account.accessToken == null
+                        || "0".equals(account.accessToken)) {
+                    Log.i(TAG, "No local or Microsoft skin available");
                     return;
                 }
 
-                String skinUrl = String.format(
-                        account.authType.skinUrl, account.username);
+                connection = (HttpURLConnection) new URL(
+                        "https://api.minecraftservices.com/minecraft/profile"
+                ).openConnection();
 
-                connection = (HttpURLConnection)
-                        new URL(skinUrl).openConnection();
+                connection.setRequestMethod("GET");
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(15000);
-                connection.setInstanceFollowRedirects(true);
-                connection.connect();
+                connection.setRequestProperty(
+                        "Authorization", "Bearer " + account.accessToken);
 
                 if (connection.getResponseCode() != 200) {
-                    Log.w(TAG, "Skin server returned "
-                            + connection.getResponseCode());
+                    Log.w(TAG, "Minecraft profile request failed");
                     return;
                 }
+
+                org.json.JSONObject profile;
+                try (InputStream stream = connection.getInputStream()) {
+                    byte[] bytes = new byte[0];
+                    java.io.ByteArrayOutputStream output =
+                            new java.io.ByteArrayOutputStream();
+                    byte[] buffer = new byte[8192];
+                    int count;
+                    while ((count = stream.read(buffer)) != -1) {
+                        output.write(buffer, 0, count);
+                    }
+                    profile = new org.json.JSONObject(
+                            output.toString("UTF-8"));
+                }
+
+                org.json.JSONArray skins = profile.optJSONArray("skins");
+                if (skins == null || skins.length() == 0) return;
+
+                String skinUrl = null;
+                for (int i = 0; i < skins.length(); i++) {
+                    org.json.JSONObject item = skins.optJSONObject(i);
+                    if (item != null) {
+                        String candidate = item.optString("url", "");
+                        if (!candidate.isEmpty()) {
+                            skinUrl = candidate;
+                            break;
+                        }
+                    }
+                }
+                if (skinUrl == null) return;
+
+                connection.disconnect();
+                connection = (HttpURLConnection) new URL(skinUrl).openConnection();
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(15000);
+
+                if (connection.getResponseCode() != 200) return;
 
                 try (InputStream stream = connection.getInputStream()) {
                     Bitmap bitmap = BitmapFactory.decodeStream(stream);
-
-                    if (bitmap != null
-                            && bitmap.getWidth() >= 64
-                            && bitmap.getHeight() >= 64
-                            && bitmap.getWidth() % 64 == 0
-                            && bitmap.getHeight() % 64 == 0) {
+                    if (bitmap != null && bitmap.getWidth() == 64
+                            && bitmap.getHeight() == 64) {
                         skinBitmap = bitmap;
-                        Log.i(TAG, "Minecraft skin loaded: "
-                                + bitmap.getWidth() + "x"
-                                + bitmap.getHeight());
                     } else if (bitmap != null) {
                         bitmap.recycle();
-                        Log.w(TAG, "Unsupported skin dimensions");
+                        Log.w(TAG, "Unsupported Minecraft skin dimensions");
                     }
                 }
             } catch (Exception e) {
-                Log.w(TAG, "Could not load selected Minecraft skin", e);
+                Log.w(TAG, "Could not load Minecraft skin");
             } finally {
                 if (connection != null) connection.disconnect();
                 skinLoading = false;
             }
         }, "Mahiru-Skin-Loader").start();
+    }
+
+    public void reloadSkin() {
+        queueEvent(() -> {
+            if (textureId != 0) {
+                GLES20.glDeleteTextures(1, new int[]{textureId}, 0);
+                textureId = 0;
+            }
+            skinBitmap = null;
+            skinLoading = false;
+            post(this::loadSelectedSkin);
+        });
+        requestRender();
     }
 
     @Override

@@ -243,7 +243,7 @@
     <string name="pedit_java_runtime">Java Runtime</string>
     <string name="pedit_renderer">Renderer</string>
     <string name="color_default_hex" translatable="false">FFFF0000</string>
-    <string name="notif_channel_name">General</string>
+    <string name="notif_channel_name">Mahiru Launcher</string>
     <string name="notif_channel_id" translatable="false">channel_id</string>
     <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">Installed</string>
@@ -348,7 +348,7 @@
     <string name="modpack_download_downloading_mods">Downloading mods (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">Downloading mods (File %d out of %d)</string>
     <string name="modpack_download_applying_overrides">Applying overrides (%d/%d)</string>
-    <string name="modpack_install_notification_title">MJ Modpack Installer</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">Click here to finish modpack installation</string>
     <string name="modpack_install_notification_data_not_available">Failed to download mod loader information</string>
     <string name="modpack_install_modloader_download_failed">Failed to download the mod loader files</string>
@@ -569,4 +569,12 @@
     <string name="preference_category_appearance">Appearance</string>
     <string name="preference_startup_animation_title">Startup animation</string>
     <string name="preference_startup_animation_description">Play a short, smooth entrance animation when the launcher home screen opens.</string>
+
+    <string name="download_manager_title">Download Manager</string>
+    <string name="download_manager_active_one">1 active task</string>
+    <string name="download_manager_active_many">%1$d active tasks</string>
+    <string name="download_manager_empty">No active downloads right now</string>
+    <string name="download_manager_close">CLOSE</string>
+    <string name="download_manager_working">Working...</string>
+
 </resources>

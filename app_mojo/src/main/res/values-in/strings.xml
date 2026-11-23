@@ -201,7 +201,7 @@
     <string name="pedit_java_runtime">Runtime Java</string>
     <string name="pedit_renderer">Renderer</string>
     <string name="notif_channel_name">Umum</string>
-    <string name="lazy_service_default_title">MJ Foreground Service</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">Terpasang</string>
     <string name="use_global_default">(Gunakan global bawaan)</string>
     <string name="default_control">Kontrol bawaan</string>
@@ -282,7 +282,7 @@
     <string name="modpack_download_downloading_mods">Mengunduh mod-mod (%.2f MB / %.2f MB)</string>
     <string name="modpack_download_downloading_mods_fc">Mengunduh mod-mod (Berkas %d dari %d)</string>
     <string name="modpack_download_applying_overrides">Menerapkan pergantian-pergantian paksa (%d/%d)</string>
-    <string name="modpack_install_notification_title">Pemasang Modpack MJ</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">Pencet ini untuk menyelesaikan pemasangan modpack</string>
     <string name="modpack_install_notification_data_not_available">Gagal mengunduh informasi loader mod</string>
     <string name="modpack_install_modloader_download_failed">Gagal mengunduh berkas-berkas loader mod</string>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app">
+    android:background="#FF120D16">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +27,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline2" />
+            app:layout_constraintTop_toTopOf="@+id/guideline2"  android:textColor="#FFF8EDF3"/>
 
         <View
             android:id="@+id/view"
@@ -44,7 +44,7 @@
             android:layout_marginHorizontal="@dimen/padding_large"
             android:text="@string/create_instance_vanilla"
             android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
+            app:layout_constraintTop_toBottomOf="@+id/view"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/optifine_profile"
@@ -53,7 +53,7 @@
             android:layout_marginHorizontal="@dimen/padding_large"
             android:text="@string/mod_dl_install_optifine"
             android:layout_marginTop="@dimen/padding_large"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
+            app:layout_constraintTop_toBottomOf="@+id/view"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
 
 
@@ -69,7 +69,7 @@
             android:text="@string/create_profile_modded_versions"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline" />
+            app:layout_constraintTop_toTopOf="@+id/guideline"  android:textColor="#FFF8EDF3"/>
 
         <View
             android:id="@+id/view_modded"
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_fabric_instance" />
+            android:text="@string/modloader_dl_install_fabric_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_quilt"
@@ -93,7 +93,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_quilt_instance" />
+            android:text="@string/modloader_dl_install_quilt_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_legacy_fabric"
@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_legacy_fabric_instance" />
+            android:text="@string/modloader_dl_install_legacy_fabric_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_forge"
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_forge_instance" />
+            android:text="@string/modloader_dl_install_forge_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_neoforge"
@@ -117,7 +117,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modloader_dl_install_neoforge_instance" />
+            android:text="@string/modloader_dl_install_neoforge_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_modpack"
@@ -125,7 +125,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/modpack_install_instance_button" />
+            android:text="@string/modpack_install_instance_button"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <com.kdt.mcgui.MineButton
             android:id="@+id/modded_profile_bta"
@@ -133,7 +133,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="@string/create_bta_instance" />
+            android:text="@string/create_bta_instance"  android:backgroundTint="#FFFF5C9A" android:textColor="#FFFFFFFF"/>
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"

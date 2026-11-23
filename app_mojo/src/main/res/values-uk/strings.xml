@@ -200,7 +200,7 @@
     <string name="pedit_java_runtime">Середовище Java</string>
     <string name="pedit_renderer">Візуалізатор</string>
     <string name="notif_channel_name">Загальне</string>
-    <string name="lazy_service_default_title">Фонова Служба MJ</string>
+    <string name="lazy_service_default_title">Mahiru Launcher</string>
     <string name="mcl_setting_veroption_installed">Встановлено</string>
     <string name="use_global_default">(Використовувати за стандартом)</string>
     <string name="default_control">Стандартне керування</string>
@@ -291,7 +291,7 @@
     <string name="modpack_download_downloading_mods">Завантаження модів (%.2f Мб / %.2f Мб)</string>
     <string name="modpack_download_downloading_mods_fc">Завантаження модів (Файл %d з %d)</string>
     <string name="modpack_download_applying_overrides">Застосування переписів (%d/%d)</string>
-    <string name="modpack_install_notification_title">Інсталяція модпаку...</string>
+    <string name="modpack_install_notification_title">Mahiru Modpack Installer</string>
     <string name="modpack_install_notification_success">Натисніть тут, щоб завершити встановлення модпака</string>
     <string name="modpack_install_notification_data_not_available">Не вдалося завантажити інформацію про модлоадер</string>
     <string name="modpack_install_modloader_download_failed">Не вдалося завантажити файли модлоадера</string>
