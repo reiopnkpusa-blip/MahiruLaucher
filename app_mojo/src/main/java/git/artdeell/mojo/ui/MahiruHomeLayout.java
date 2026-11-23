@@ -121,8 +121,10 @@ public class MahiruHomeLayout extends ConstraintLayout
                         if (result != null && !result.isRecycled()) result.recycle();
                         return;
                     }
-                    if (result != null) backgroundImage.setImageBitmap(result);
-                    else backgroundImage.setImageDrawable(null);
+                    if (result != null) {
+                        backgroundImage.setImageBitmap(result);
+                        applySavedCrop();
+                    } else backgroundImage.setImageDrawable(null);
                 });
             }, "Mahiru-Custom-Background").start();
             return;
@@ -130,6 +132,19 @@ public class MahiruHomeLayout extends ConstraintLayout
 
         backgroundImage.setImageDrawable(null);
         loadDefaultImage(token);
+    }
+
+    private void applySavedCrop() {
+        if (backgroundImage == null) return;
+        float zoom = 1f + preferences.getInt("background_crop_zoom", 0) / 100f;
+        backgroundImage.setScaleX(zoom);
+        backgroundImage.setScaleY(zoom);
+        backgroundImage.post(() -> {
+            float panX = preferences.getFloat("background_crop_x", 0f);
+            float panY = preferences.getFloat("background_crop_y", 0f);
+            backgroundImage.setTranslationX(panX * backgroundImage.getWidth() * zoom);
+            backgroundImage.setTranslationY(panY * backgroundImage.getHeight() * zoom);
+        });
     }
 
     private void loadDefaultImage(int token) {
@@ -163,7 +178,10 @@ public class MahiruHomeLayout extends ConstraintLayout
                     if (result != null && !result.isRecycled()) result.recycle();
                     return;
                 }
-                if (result != null) backgroundImage.setImageBitmap(result);
+                if (result != null) {
+                    backgroundImage.setImageBitmap(result);
+                    applySavedCrop();
+                }
             });
         }, "Mahiru-Default-Background").start();
     }

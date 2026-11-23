@@ -155,7 +155,8 @@ public class LauncherActivity extends BaseActivity {
 
     @Override
     public boolean setFullscreen() {
-        return false;
+        return androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("launcher_fullscreen", false);
     }
 
     @Override

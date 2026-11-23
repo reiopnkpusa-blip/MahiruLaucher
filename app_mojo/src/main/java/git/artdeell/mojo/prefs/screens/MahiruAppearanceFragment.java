@@ -2,6 +2,10 @@ package git.artdeell.mojo.prefs.screens;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.view.MotionEvent;
+import android.widget.ImageView;
 import android.net.Uri;
 import android.text.InputType;
 import android.widget.EditText;
@@ -32,14 +36,102 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
                     requireContext().getContentResolver().takePersistableUriPermission(
                             uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 } catch (Exception ignored) { }
-                requireContext().getSharedPreferences(PREFS, 0).edit()
-                        .putString(KEY_MODE, "photo")
-                        .putString(KEY_URI, uri.toString())
-                        .apply();
-                updatePhotoSummary();
+                openCropEditor(uri);
             });
 
     private Preference photoPreference;
+
+    private void openCropEditor(Uri uri) {
+        Bitmap preview;
+        try (java.io.InputStream input = requireContext().getContentResolver().openInputStream(uri)) {
+            if (input == null) throw new java.io.IOException("Unable to open image");
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(input, null, bounds);
+            int sample = 1;
+            while (bounds.outWidth / sample > 1600 || bounds.outHeight / sample > 1600) sample *= 2;
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = sample;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            try (java.io.InputStream imageInput = requireContext().getContentResolver().openInputStream(uri)) {
+                preview = BitmapFactory.decodeStream(imageInput, null, options);
+            }
+        } catch (Exception error) {
+            new AlertDialog.Builder(requireContext()).setMessage("Could not load this image.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+        if (preview == null) return;
+
+        LinearLayout content = new LinearLayout(requireContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        content.setPadding(pad, pad, pad, pad);
+        TextView hint = new TextView(requireContext());
+        hint.setText("Drag to position the photo. Use the slider to zoom.");
+        content.addView(hint);
+
+        ImageView previewView = new ImageView(requireContext());
+        previewView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        previewView.setImageBitmap(preview);
+        content.addView(previewView, new LinearLayout.LayoutParams(-1,
+                (int) (250 * getResources().getDisplayMetrics().density)));
+
+        final float[] drag = new float[]{0f, 0f, 0f, 0f};
+        previewView.setOnTouchListener((view, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                drag[0] = event.getX(); drag[1] = event.getY();
+                return true;
+            }
+            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                drag[2] += event.getX() - drag[0];
+                drag[3] += event.getY() - drag[1];
+                drag[0] = event.getX(); drag[1] = event.getY();
+                view.setTranslationX(drag[2]);
+                view.setTranslationY(drag[3]);
+                return true;
+            }
+            return event.getAction() == MotionEvent.ACTION_UP;
+        });
+
+        TextView zoomLabel = new TextView(requireContext());
+        zoomLabel.setText("Zoom");
+        content.addView(zoomLabel);
+        SeekBar zoom = new SeekBar(requireContext());
+        zoom.setMax(300);
+        content.addView(zoom);
+        zoom.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar bar, int value, boolean fromUser) {
+                float factor = 1f + value / 100f;
+                previewView.setScaleX(factor);
+                previewView.setScaleY(factor);
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar) { }
+            @Override public void onStopTrackingTouch(SeekBar bar) { }
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Launcher background preview")
+                .setView(content)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Use this crop", (d, w) -> {
+                    float panX = previewView.getTranslationX() / Math.max(1f, previewView.getWidth());
+                    float panY = previewView.getTranslationY() / Math.max(1f, previewView.getHeight());
+                    requireContext().getSharedPreferences(PREFS, 0).edit()
+                            .putString(KEY_MODE, "photo")
+                            .putString(KEY_URI, uri.toString())
+                            .putInt("background_crop_zoom", zoom.getProgress())
+                            .putFloat("background_crop_x", Math.max(-0.5f, Math.min(0.5f, panX)))
+                            .putFloat("background_crop_y", Math.max(-0.5f, Math.min(0.5f, panY)))
+                            .apply();
+                    updatePhotoSummary();
+                }).create();
+        dialog.setOnDismissListener(d -> {
+            if (!preview.isRecycled()) preview.recycle();
+        });
+        dialog.show();
+    }
+
 
     @Override
     public void onCreatePreferences(android.os.Bundle state, String rootKey) {
