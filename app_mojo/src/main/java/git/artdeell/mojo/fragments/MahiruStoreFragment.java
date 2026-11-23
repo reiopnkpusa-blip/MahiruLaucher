@@ -11,6 +11,9 @@ import android.view.animation.LayoutAnimationController;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.HorizontalScrollView;
+import android.graphics.drawable.GradientDrawable;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -48,7 +51,7 @@ public class MahiruStoreFragment extends Fragment {
     public static final String TAG = "MahiruStoreFragment";
 
     private static final String API = "https://api.modrinth.com/v2";
-    private final String[] categories = {"Mods", "Modpacks", "Datapacks", "Shaders", "Resource Packs"};
+    private final String[] categories = {"Mods", "Shaderpacks", "Resource Packs", "Datapacks", "Modpacks"};
     private final String[] loaders = {"Auto", "Fabric", "Forge", "NeoForge", "Quilt", "Vanilla"};
     private final ArrayList<JSONObject> results = new ArrayList<>();
 
@@ -60,6 +63,7 @@ public class MahiruStoreFragment extends Fragment {
     private ListView resultList;
     private ArrayAdapter<String> resultAdapter;
     private final ArrayList<String> resultTitles = new ArrayList<>();
+    private final ArrayList<View> categoryButtons = new ArrayList<>();
     private String gameVersion = "";
     private int requestGeneration = 0;
 
@@ -81,77 +85,90 @@ public class MahiruStoreFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater,
                              @Nullable ViewGroup container, @Nullable Bundle state) {
-        int pad = dp(14);
+        int pad = dp(12);
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(pad, pad, pad, pad);
-        root.setBackgroundColor(0xFF171019);
+        root.setBackgroundColor(0x00171019);
 
         TextView title = new TextView(requireContext());
         title.setText("MAHIRU STORE");
-        title.setTextColor(0xFFFF5C9B);
-        title.setTextSize(22);
+        title.setTextColor(0xFFFF6FA8);
+        title.setTextSize(21);
         title.setTypeface(null, 1);
         root.addView(title);
 
         TextView subtitle = new TextView(requireContext());
-        subtitle.setText("Discover Minecraft mods, shaders and more");
+        subtitle.setText("Explore Minecraft content");
         subtitle.setTextColor(0xFFD9CED8);
         subtitle.setTextSize(12);
         subtitle.setPadding(0, 0, 0, dp(10));
         root.addView(subtitle);
 
-        LinearLayout body = new LinearLayout(requireContext());
-        body.setOrientation(LinearLayout.HORIZONTAL);
-        root.addView(body, new LinearLayout.LayoutParams(-1, 0, 1));
-
-        // Keep the spinner as the category state source; the visible controls
-        // are a compact icon rail on the left.
         categorySpinner = new Spinner(requireContext());
         categorySpinner.setVisibility(View.GONE);
         categorySpinner.setAdapter(new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, categories));
 
+        LinearLayout body = new LinearLayout(requireContext());
+        body.setOrientation(LinearLayout.HORIZONTAL);
+        root.addView(body, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        // Compact left control rail: search and the original category filter list.
         LinearLayout sidebar = new LinearLayout(requireContext());
         sidebar.setOrientation(LinearLayout.VERTICAL);
-        sidebar.setPadding(dp(5), dp(8), dp(5), dp(8));
-        sidebar.setBackgroundColor(0xFF211923);
-        body.addView(sidebar, new LinearLayout.LayoutParams(dp(104), -1));
+        sidebar.setPadding(dp(7), dp(8), dp(7), dp(8));
+        sidebar.setBackground(categoryBackground(false));
+        body.addView(sidebar, new LinearLayout.LayoutParams(dp(116), -1));
 
-        TextView filterTitle = new TextView(requireContext());
-        filterTitle.setText("FILTERS");
-        filterTitle.setTextColor(0xFFFF8AB5);
-        filterTitle.setTextSize(11);
-        filterTitle.setTypeface(null, 1);
-        filterTitle.setGravity(Gravity.CENTER);
-        filterTitle.setPadding(0, dp(4), 0, dp(10));
-        sidebar.addView(filterTitle);
+        TextView searchTitle = new TextView(requireContext());
+        searchTitle.setText("SEARCH");
+        searchTitle.setTextColor(0xFFFF9BC0);
+        searchTitle.setTextSize(10);
+        searchTitle.setTypeface(null, 1);
+        sidebar.addView(searchTitle);
 
-        String[] categoryIcons = {"🧩", "📦", "🗺️", "🌈", "🎨"};
+        searchInput = new EditText(requireContext());
+        searchInput.setSingleLine(true);
+        searchInput.setHint("Search...");
+        searchInput.setTextColor(0xFFFFFFFF);
+        searchInput.setHintTextColor(0xFFB8AAB6);
+        searchInput.setTextSize(12);
+        searchInput.setPadding(dp(7), 0, dp(7), 0);
+        searchInput.setBackground(categoryBackground(false));
+        sidebar.addView(searchInput, new LinearLayout.LayoutParams(-1, dp(40)));
+
+        Button search = new Button(requireContext());
+        search.setText("SEARCH");
+        search.setTextSize(10);
+        search.setAllCaps(false);
+        search.setTextColor(0xFFFFFFFF);
+        search.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE84E91));
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(-1, dp(36));
+        searchParams.topMargin = dp(6);
+        sidebar.addView(search, searchParams);
+
+        TextView categoriesTitle = new TextView(requireContext());
+        categoriesTitle.setText("CATEGORIES");
+        categoriesTitle.setTextColor(0xFFFF9BC0);
+        categoriesTitle.setTextSize(10);
+        categoriesTitle.setTypeface(null, 1);
+        categoriesTitle.setPadding(0, dp(14), 0, dp(6));
+        sidebar.addView(categoriesTitle);
+
+        String[] shortNames = {"Mods", "Shaders", "Resource", "Datapacks", "Modpacks"};
         for (int i = 0; i < categories.length; i++) {
             final int index = i;
             TextView item = new TextView(requireContext());
-            item.setText(categoryIcons[i] + String.valueOf((char) 10) + categories[i]);
-            item.setTextColor(i == 0 ? 0xFFFFFFFF : 0xFFD9CED8);
+            item.setText(shortNames[i]);
+            item.setTextColor(0xFFEFE7EF);
             item.setTextSize(11);
-            item.setGravity(Gravity.CENTER);
-            item.setPadding(dp(3), dp(10), dp(3), dp(10));
-            item.setMinHeight(dp(62));
-            item.setBackgroundColor(i == 0 ? 0xFFB93670 : 0x00211923);
-            sidebar.addView(item, new LinearLayout.LayoutParams(-1, -2));
-            item.setOnClickListener(v -> {
-                categorySpinner.setSelection(index);
-                for (int j = 0; j < sidebar.getChildCount(); j++) {
-                    View child = sidebar.getChildAt(j);
-                    if (child instanceof TextView && j > 0) {
-                        child.setBackgroundColor(j == index + 1
-                                ? 0xFFB93670 : 0x00211923);
-                        ((TextView) child).setTextColor(j == index + 1
-                                ? 0xFFFFFFFF : 0xFFD9CED8);
-                    }
-                }
-                searchProjects();
-            });
+            item.setGravity(Gravity.CENTER_VERTICAL);
+            item.setPadding(dp(8), dp(7), dp(4), dp(7));
+            item.setTag(index);
+            categoryButtons.add(item);
+            sidebar.addView(item, new LinearLayout.LayoutParams(-1, dp(34)));
+            item.setOnClickListener(v -> selectCategory(index));
         }
 
         LinearLayout content = new LinearLayout(requireContext());
@@ -159,62 +176,93 @@ public class MahiruStoreFragment extends Fragment {
         content.setPadding(dp(10), 0, 0, 0);
         body.addView(content, new LinearLayout.LayoutParams(0, -1, 1));
 
-        searchInput = new EditText(requireContext());
-        searchInput.setSingleLine(true);
-        searchInput.setHint("Search content...");
-        searchInput.setTextColor(0xFFFFFFFF);
-        searchInput.setHintTextColor(0xFFAA9EAA);
-        searchInput.setTextSize(14);
-        content.addView(searchInput, new LinearLayout.LayoutParams(-1, dp(46)));
+        TextView categoryHeading = new TextView(requireContext());
+        categoryHeading.setText("Categories");
+        categoryHeading.setTextColor(0xFFFFFFFF);
+        categoryHeading.setTextSize(16);
+        categoryHeading.setTypeface(null, 1);
+        content.addView(categoryHeading);
+
+        HorizontalScrollView categoryScroll = new HorizontalScrollView(requireContext());
+        categoryScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout categoryRow = new LinearLayout(requireContext());
+        categoryRow.setOrientation(LinearLayout.HORIZONTAL);
+        categoryRow.setPadding(0, dp(7), 0, dp(8));
+        int[] categoryIcons = {
+                R.drawable.ic_store_mods,
+                R.drawable.ic_store_shaders,
+                R.drawable.ic_store_resourcepacks,
+                R.drawable.ic_store_datapacks,
+                R.drawable.ic_store_modpacks
+        };
+        for (int i = 0; i < categories.length; i++) {
+            final int index = i;
+            LinearLayout tile = new LinearLayout(requireContext());
+            tile.setOrientation(LinearLayout.VERTICAL);
+            tile.setGravity(Gravity.CENTER);
+            tile.setPadding(dp(8), dp(8), dp(8), dp(8));
+            tile.setTag(index);
+            ImageView icon = new ImageView(requireContext());
+            icon.setImageResource(categoryIcons[i]);
+            icon.setColorFilter(0xFFFF8AB5);
+            tile.addView(icon, new LinearLayout.LayoutParams(dp(27), dp(27)));
+            TextView label = new TextView(requireContext());
+            label.setText(shortNames[i]);
+            label.setTextColor(0xFFF7EDF3);
+            label.setTextSize(10);
+            label.setGravity(Gravity.CENTER);
+            tile.addView(label);
+            LinearLayout.LayoutParams tileParams = new LinearLayout.LayoutParams(dp(86), dp(76));
+            tileParams.rightMargin = dp(7);
+            categoryRow.addView(tile, tileParams);
+            categoryButtons.add(tile);
+            tile.setOnClickListener(v -> selectCategory(index));
+        }
+        categoryScroll.addView(categoryRow);
+        content.addView(categoryScroll);
 
         TextView loaderTitle = new TextView(requireContext());
         loaderTitle.setText("GAME LOADER");
-        loaderTitle.setTextColor(0xFFFF8AB5);
-        loaderTitle.setTextSize(11);
+        loaderTitle.setTextColor(0xFFFF9BC0);
+        loaderTitle.setTextSize(10);
         loaderTitle.setTypeface(null, 1);
-        loaderTitle.setPadding(0, dp(8), 0, dp(2));
+        loaderTitle.setPadding(0, dp(4), 0, dp(2));
         content.addView(loaderTitle);
 
         loaderSpinner = new Spinner(requireContext());
         loaderSpinner.setAdapter(new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, loaders));
-        content.addView(loaderSpinner, new LinearLayout.LayoutParams(-1, dp(42)));
+        content.addView(loaderSpinner, new LinearLayout.LayoutParams(-1, dp(38)));
 
         versionLabel = new TextView(requireContext());
-        versionLabel.setTextColor(0xFFFF8AB5);
-        versionLabel.setTextSize(12);
-        versionLabel.setPadding(0, dp(4), 0, dp(6));
+        versionLabel.setTextColor(0xFFFF9BC0);
+        versionLabel.setTextSize(11);
+        versionLabel.setPadding(0, dp(3), 0, dp(4));
         content.addView(versionLabel);
         updateVersionLabel();
-
-        Button search = new Button(requireContext());
-        search.setText("SEARCH");
-        search.setTextColor(0xFFFFFFFF);
-        search.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE84E91));
-        content.addView(search, new LinearLayout.LayoutParams(-1, dp(42)));
 
         progress = new ProgressBar(requireContext(), null,
                 android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);
         progress.setVisibility(View.GONE);
-        content.addView(progress, new LinearLayout.LayoutParams(-1, dp(4)));
+        content.addView(progress, new LinearLayout.LayoutParams(-1, dp(3)));
 
         progressLabel = new TextView(requireContext());
-        progressLabel.setTextColor(0xFFFF8AB5);
-        progressLabel.setTextSize(11);
+        progressLabel.setTextColor(0xFFFF9BC0);
+        progressLabel.setTextSize(10);
         progressLabel.setVisibility(View.GONE);
         content.addView(progressLabel);
 
         status = new TextView(requireContext());
-        status.setTextColor(0xFFD9CED8);
-        status.setTextSize(12);
-        status.setGravity(Gravity.CENTER);
-        status.setPadding(0, dp(8), 0, dp(8));
+        status.setTextColor(0xFFE8DCE6);
+        status.setTextSize(11);
+        status.setGravity(Gravity.CENTER_VERTICAL);
+        status.setPadding(0, dp(6), 0, dp(6));
         content.addView(status);
 
         resultList = new ListView(requireContext());
         resultList.setDividerHeight(dp(1));
-        resultList.setBackgroundColor(0xFF211923);
+        resultList.setBackgroundColor(0x00171019);
         resultAdapter = new ArrayAdapter<String>(requireContext(),
                 android.R.layout.simple_list_item_2, android.R.id.text1, resultTitles) {
             @NonNull @Override
@@ -222,17 +270,18 @@ public class MahiruStoreFragment extends Fragment {
                                 @NonNull ViewGroup parent) {
                 LinearLayout row = new LinearLayout(requireContext());
                 row.setOrientation(LinearLayout.VERTICAL);
-                row.setPadding(dp(12), dp(12), dp(12), dp(12));
+                row.setPadding(dp(12), dp(10), dp(12), dp(10));
+                row.setBackground(categoryBackground(false));
                 TextView name = new TextView(requireContext());
                 name.setText(resultTitles.get(position));
                 name.setTextColor(0xFFFFFFFF);
-                name.setTextSize(15);
+                name.setTextSize(14);
                 name.setTypeface(null, 1);
                 TextView description = new TextView(requireContext());
                 JSONObject item = results.get(position);
                 description.setText(item.optString("description", ""));
-                description.setTextColor(0xFFBFB3C0);
-                description.setTextSize(12);
+                description.setTextColor(0xFFD0C3CE);
+                description.setTextSize(11);
                 description.setMaxLines(2);
                 row.addView(name);
                 row.addView(description);
@@ -252,14 +301,43 @@ public class MahiruStoreFragment extends Fragment {
             return true;
         });
         categorySpinner.setOnItemSelectedListener(
-                new SimpleSelectionListener(() -> searchProjects()));
+                new SimpleSelectionListener(() -> {
+                    refreshCategorySelection();
+                    searchProjects();
+                }));
         loaderSpinner.setOnItemSelectedListener(
                 new SimpleSelectionListener(() -> searchProjects()));
         resultList.setOnItemClickListener(
                 (parent, view, position, id) -> showProjectVersions(position));
 
+        refreshCategorySelection();
         searchProjects();
         return root;
+    }
+
+    private void selectCategory(int index) {
+        if (categorySpinner == null) return;
+        categorySpinner.setSelection(index);
+        refreshCategorySelection();
+        searchProjects();
+    }
+
+    private void refreshCategorySelection() {
+        if (categorySpinner == null) return;
+        int selected = categorySpinner.getSelectedItemPosition();
+        for (View item : categoryButtons) {
+            Object tag = item.getTag();
+            if (!(tag instanceof Integer)) continue;
+            item.setBackground(categoryBackground(((Integer) tag) == selected));
+        }
+    }
+
+    private GradientDrawable categoryBackground(boolean selected) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(selected ? 0xCCB93670 : 0x55211923);
+        drawable.setCornerRadius(dp(11));
+        drawable.setStroke(dp(1), selected ? 0xFFFF7EAE : 0x557F6C7A);
+        return drawable;
     }
 
     private void updateVersionLabel() {
@@ -519,10 +597,10 @@ public class MahiruStoreFragment extends Fragment {
 
     private String getProjectType() {
         switch (categorySpinner.getSelectedItemPosition()) {
-            case 1: return "modpack";
-            case 2: return "datapack";
-            case 3: return "shader";
-            case 4: return "resourcepack";
+            case 1: return "shader";
+            case 2: return "resourcepack";
+            case 3: return "datapack";
+            case 4: return "modpack";
             default: return "mod";
         }
     }
