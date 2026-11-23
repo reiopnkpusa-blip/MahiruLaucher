@@ -44,7 +44,7 @@ public class Minecraft3DView extends GLSurfaceView
     private int textureHandle;
     private int textureId;
 
-    private float rotation;
+    private volatile float rotation;
     private float lastTouchX;
     private float armAnimation;
     private volatile boolean slimArms;
@@ -495,8 +495,11 @@ public class Minecraft3DView extends GLSurfaceView
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
 
+        // Tighter frustum makes the lobby character occupy more of its preview.
+        float halfHeight = 0.62f;
         Matrix.frustumM(projection, 0,
-                -ratio, ratio, -1, 1, 2, 30);
+                -ratio * halfHeight, ratio * halfHeight,
+                -halfHeight, halfHeight, 2, 30);
 
         Matrix.setLookAtM(view, 0,
                 0, 0, 6.4f,
