@@ -74,9 +74,7 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
 
         ListPreference rendererListPreference = requirePreference("renderer",
                 ListPreference.class);
-        RendererCache list = RendererCache.getCompatibleRenderers(getContext());
-        rendererListPreference.setEntries(list.rendererDisplayNames);
-        rendererListPreference.setEntryValues(list.rendererIds.toArray(new String[0]));
+        updateRendererEntries(rendererListPreference);
 
 
         Preference drivers = requirePreference("manageDrivers");
@@ -106,7 +104,18 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences p, String s) {
         super.onSharedPreferenceChanged(p, s);
+        if ("force_unsupported_renderers".equals(s)) {
+            ListPreference renderer = findPreference("renderer");
+            if (renderer != null) updateRendererEntries(renderer);
+        }
         computeVisibility();
+    }
+
+    private void updateRendererEntries(ListPreference preference) {
+        RendererCache.releaseRendererCache();
+        RendererCache list = RendererCache.getCompatibleRenderers(requireContext());
+        preference.setEntries(list.rendererDisplayNames);
+        preference.setEntryValues(list.rendererIds.toArray(new String[0]));
     }
 
     private void computeVisibility(){

@@ -9,7 +9,8 @@ import static git.artdeell.mojo.game.renderer.def.Renderers.MESA_RENDERER_EXT;
 import static git.artdeell.mojo.game.renderer.def.Renderers.ZINK_RENDERER;
 
 import android.content.Context;
-import android.content.res.Resources;\nimport androidx.preference.PreferenceManager;
+import android.content.res.Resources;
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +45,16 @@ public class RendererCache {
         };
         ArrayList<String> rendererIds = new ArrayList<>(renderers.length);
         ArrayList<String> rendererNames = new ArrayList<>(rendererIds);
-        boolean forceUnsupported = PreferenceManager.getDefaultSharedPreferences(context)\n                .getBoolean("force_unsupported_renderers", false);\n        for (String renderer : renderers) {
+        boolean forceUnsupported = PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean("force_unsupported_renderers", false);
+        for (String renderer : renderers) {
             RenderSpec r = GameRenderer.getKnownRenderer(renderer);
             assert r != null;
-            boolean compatible = r.compatibleDevice(context);\n            if (!compatible && !forceUnsupported) continue;
+            boolean compatible = r.compatibleDevice(context);
+            if (!compatible && !forceUnsupported) continue;
             rendererIds.add(renderer);
-            rendererNames.add(resources.getString(r.displayName())\n                    + (compatible ? "" : "  •  EXPERIMENTAL"));
+            rendererNames.add(resources.getString(r.displayName())
+                    + (compatible ? "" : "  •  EXPERIMENTAL"));
         }
         rendererIds.trimToSize();
         rendererNames.trimToSize();
@@ -60,7 +65,9 @@ public class RendererCache {
      * Destroy compatible renderers cache
      */
     public static void releaseRendererCache() {
-        sCompatibleRenderers.rendererIds.clear();
-        sCompatibleRenderers = null;
+        if (sCompatibleRenderers != null) {
+            sCompatibleRenderers.rendererIds.clear();
+            sCompatibleRenderers = null;
+        }
     }
 }
