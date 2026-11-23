@@ -3,7 +3,12 @@ package git.artdeell.mojo.renderer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.net.Uri;
+
+import androidx.preference.PreferenceManager;
 
 import git.artdeell.mojo.authenticator.AuthType;
 import git.artdeell.mojo.authenticator.accounts.Account;
@@ -34,7 +39,7 @@ public final class SkinManager {
     public static final String KEY_MODEL = "local_skin_model";
 
     public static String getLocalSkinVariant(Context context) {
-        String value = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        String value = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(KEY_MODEL, "classic");
         return "slim".equals(value) ? "slim" : "classic";
     }
@@ -44,7 +49,7 @@ public final class SkinManager {
         if (!"classic".equals(variant) && !"slim".equals(variant)) {
             throw new IOException("Invalid skin model");
         }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        PreferenceManager.getDefaultSharedPreferences(context)
                 .edit().putString(KEY_MODEL, variant).apply();
     }
 
@@ -67,9 +72,26 @@ public final class SkinManager {
 
         if (bitmap == null) throw new IOException("Invalid PNG image");
 
+        // Convert legacy 64x32 skins to the modern 64x64 atlas. Legacy skins
+        // only contain the right arm and right leg textures, so mirror those
+        // base regions into the modern left-limb UV regions.
+        if (bitmap.getWidth() == 64 && bitmap.getHeight() == 32) {
+            Bitmap legacy = bitmap;
+            Bitmap modern = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(modern);
+            Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+            canvas.drawBitmap(legacy, 0f, 0f, paint);
+            canvas.drawBitmap(legacy, new Rect(40, 16, 56, 32),
+                    new Rect(32, 48, 48, 64), paint);
+            canvas.drawBitmap(legacy, new Rect(0, 16, 16, 32),
+                    new Rect(16, 48, 32, 64), paint);
+            legacy.recycle();
+            bitmap = modern;
+        }
+
         try {
             if (bitmap.getWidth() != 64 || bitmap.getHeight() != 64) {
-                throw new IOException("Skin must be exactly 64 x 64 pixels");
+                throw new IOException("Skin must be 64 x 64 or legacy 64 x 32 pixels");
             }
 
             File output = getLocalSkinFile(context);
