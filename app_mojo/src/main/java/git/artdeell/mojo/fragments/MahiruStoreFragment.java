@@ -351,7 +351,7 @@ public class MahiruStoreFragment extends Fragment {
             File temp = new File(Tools.DIR_CACHE,
                     "mahiru-store-" + System.currentTimeMillis() + "-" + filename);
             try {
-                downloadStoreFile(url, temp);
+                downloadStoreFile(url, temp, appContext, host);
                 if ("modpack".equals(type)) {
                     new ModrinthApi().installLocalModpack(
                             project.optString("title", "Modpack"), temp, null);
@@ -398,7 +398,7 @@ public class MahiruStoreFragment extends Fragment {
         }, "Mahiru-Store-Install").start();
     }
 
-    private void downloadStoreFile(String url, File output) throws Exception {
+    private void downloadStoreFile(String url, File output, android.content.Context appContext, androidx.fragment.app.FragmentActivity host) throws Exception {
         FileUtils.ensureParentDirectory(output);
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setConnectTimeout(15000);
@@ -480,7 +480,7 @@ public class MahiruStoreFragment extends Fragment {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
-    private abstract static class SimpleSelectionListener implements android.widget.AdapterView.OnItemSelectedListener {
+    private static class SimpleSelectionListener implements android.widget.AdapterView.OnItemSelectedListener {
         private final Runnable callback;
         private boolean first = true;
         SimpleSelectionListener(Runnable callback) { this.callback = callback; }
