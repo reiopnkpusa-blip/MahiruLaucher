@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
@@ -77,6 +78,9 @@ public class Minecraft3DView extends GLSurfaceView
     public Minecraft3DView(Context context) {
         super(context);
         setEGLContextClientVersion(2);
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        setZOrderMediaOverlay(true);
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         slimArms = "slim".equals(SkinManager.getLocalSkinVariant(context));
@@ -160,6 +164,8 @@ public class Minecraft3DView extends GLSurfaceView
                             slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
                                     getContext().getApplicationContext()));
                             skinBitmap = local;
+                            queueEvent(this::buildPlayerModel);
+                            requestRender();
                         } else {
                             local.recycle();
                         }
@@ -286,7 +292,7 @@ public class Minecraft3DView extends GLSurfaceView
             javax.microedition.khronos.opengles.GL10 gl,
             javax.microedition.khronos.egl.EGLConfig config) {
 
-        GLES20.glClearColor(0.09f, 0.055f, 0.10f, 1f);
+        GLES20.glClearColor(0f, 0f, 0f, 0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(
