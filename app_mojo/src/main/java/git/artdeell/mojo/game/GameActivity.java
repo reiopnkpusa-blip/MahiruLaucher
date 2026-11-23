@@ -338,6 +338,25 @@ public class GameActivity extends BaseActivity implements ControlButtonMenuListe
     }
 
     @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && launcherGLView != null) {
+            // Re-measure the game surface after immersive bars have been hidden.
+            // OEM window inset handling can otherwise leave the render surface at
+            // its pre-fullscreen height until the next configuration change.
+            launcherGLView.post(() -> {
+                if (isFinishing() || isDestroyed() || launcherGLView == null) return;
+                launcherGLView.requestLayout();
+                launcherGLView.post(() -> {
+                    if (!isFinishing() && !isDestroyed() && launcherGLView != null) {
+                        launcherGLView.refreshSize();
+                    }
+                });
+            });
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         ContextExecutor.setActivity(this);
