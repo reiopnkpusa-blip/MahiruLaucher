@@ -31,6 +31,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -47,6 +52,7 @@ public class MahiruStoreFragment extends Fragment {
     private EditText searchInput;
     private Spinner categorySpinner, loaderSpinner;
     private TextView versionLabel, status;
+    private TextView progressLabel;
     private ProgressBar progress;
     private ListView resultList;
     private ArrayAdapter<String> resultAdapter;
@@ -122,9 +128,15 @@ public class MahiruStoreFragment extends Fragment {
         search.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE84E91));
         root.addView(search, new LinearLayout.LayoutParams(-1, dp(44)));
 
-        progress = new ProgressBar(requireContext());
+        progress = new ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
         progress.setVisibility(View.GONE);
-        root.addView(progress, new LinearLayout.LayoutParams(-1, dp(4)));
+        root.addView(progress, new LinearLayout.LayoutParams(-1, dp(5)));
+        progressLabel = new TextView(requireContext());
+        progressLabel.setTextColor(0xFFFF8AB5);
+        progressLabel.setTextSize(11);
+        progressLabel.setVisibility(View.GONE);
+        root.addView(progressLabel);
 
         status = new TextView(requireContext());
         status.setTextColor(0xFFD9CED8);
@@ -300,45 +312,75 @@ public class MahiruStoreFragment extends Fragment {
             Toast.makeText(requireContext(), "Select a Minecraft profile first.", Toast.LENGTH_LONG).show();
             return;
         }
+        File datapackFolder = null;
+        if ("datapack".equals(type)) {
+            File saves = new File(instance.getGameDirectory(), "saves");
+            File[] worlds = saves.listFiles(File::isDirectory);
+            if (worlds == null || worlds.length == 0) {
+                Toast.makeText(requireContext(), "Create a world before installing datapacks.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            String[] names = new String[worlds.length];
+            for (int i = 0; i < worlds.length; i++) names[i] = worlds[i].getName();
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Choose world for datapack")
+                    .setItems(names, (dialog, which) ->
+                            beginStoreDownload(project, version, file, type, instance,
+                                    new File(worlds[which], "datapacks")))
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            return;
+        }
+        beginStoreDownload(project, version, file, type, instance, null);
+    }
+
+    private void beginStoreDownload(JSONObject project, JSONObject version, JSONObject file,
+                                     String type, Instance instance, File datapackFolder) {
         String url = file.optString("url", "");
-        String filename = file.optString("filename", "download.bin");
+        String filename = FileUtils.escapeFileName(
+                new File(file.optString("filename", "download.bin")).getName());
         if (url.isEmpty()) return;
         progress.setVisibility(View.VISIBLE);
-        status.setText("Downloading " + filename + "...");
+        progress.setIndeterminate(false);
+        progress.setProgress(0);
+        progressLabel.setVisibility(View.VISIBLE);
+        status.setText("Preparing " + filename + "...");
         new Thread(() -> {
-            String safeName = FileUtils.escapeFileName(new File(filename).getName());
-            File temp = new File(Tools.DIR_CACHE, "mahiru-store-" + System.currentTimeMillis() + "-" + safeName);
+            File temp = new File(Tools.DIR_CACHE,
+                    "mahiru-store-" + System.currentTimeMillis() + "-" + filename);
             try {
-                DownloadUtils.downloadFile(url, temp);
+                downloadStoreFile(url, temp);
                 if ("modpack".equals(type)) {
-                    new ModrinthApi().installLocalModpack(project.optString("title", "Modpack"),
-                            temp, null);
+                    new ModrinthApi().installLocalModpack(
+                            project.optString("title", "Modpack"), temp, null);
                 } else {
                     File destination;
-                    String folder;
-                    if ("mod".equals(type)) folder = "mods";
-                    else if ("shader".equals(type)) folder = "shaderpacks";
-                    else if ("resourcepack".equals(type)) folder = "resourcepacks";
-                    else if ("datapack".equals(type)) folder = null;
+                    if ("datapack".equals(type)) destination = datapackFolder;
+                    else if ("mod".equals(type)) destination = new File(instance.getGameDirectory(), "mods");
+                    else if ("shader".equals(type)) destination = new File(instance.getGameDirectory(), "shaderpacks");
+                    else if ("resourcepack".equals(type)) destination = new File(instance.getGameDirectory(), "resourcepacks");
                     else throw new IllegalStateException("Unsupported content type.");
-
-                    if ("datapack".equals(type)) {
-                        destination = chooseWorldDatapacksFolder(instance.getGameDirectory());
-                        if (destination == null) throw new IllegalStateException("No world selected.");
-                    } else {
-                        destination = new File(instance.getGameDirectory(), folder);
-                    }
+                    if (destination == null) throw new IllegalStateException("Install destination is unavailable.");
                     FileUtils.ensureDirectory(destination);
-                    File output = new File(destination, safeName);
-                    if (!output.getCanonicalPath().startsWith(destination.getCanonicalPath() + File.separator)) {
-                        throw new SecurityException("Invalid file path.");
+                    File output = new File(destination, filename);
+                    String base = destination.getCanonicalPath() + File.separator;
+                    if (!output.getCanonicalPath().startsWith(base)) {
+                        throw new SecurityException("Invalid install path.");
                     }
+                    if (output.exists()) throw new IllegalStateException("This file is already installed.");
                     if (!temp.renameTo(output)) {
-                        DownloadUtils.downloadFile(url, output);
+                        try (FileInputStream input = new FileInputStream(temp);
+                             FileOutputStream outputStream = new FileOutputStream(output)) {
+                            byte[] buffer = new byte[8192];
+                            int count;
+                            while ((count = input.read(buffer)) != -1) outputStream.write(buffer, 0, count);
+                        }
+                        if (!temp.delete()) temp.deleteOnExit();
                     }
                 }
                 if (isAdded()) requireActivity().runOnUiThread(() -> {
                     progress.setVisibility(View.GONE);
+                    progressLabel.setVisibility(View.GONE);
                     status.setText("Installed successfully: " + project.optString("title", filename));
                     Toast.makeText(requireContext(), "Installed successfully", Toast.LENGTH_LONG).show();
                 });
@@ -346,6 +388,7 @@ public class MahiruStoreFragment extends Fragment {
                 temp.delete();
                 if (isAdded()) requireActivity().runOnUiThread(() -> {
                     progress.setVisibility(View.GONE);
+                    progressLabel.setVisibility(View.GONE);
                     status.setText("Install failed: " + error.getMessage());
                     Toast.makeText(requireContext(), "Install failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
                 });
@@ -353,28 +396,44 @@ public class MahiruStoreFragment extends Fragment {
         }, "Mahiru-Store-Install").start();
     }
 
-    private File chooseWorldDatapacksFolder(File gameDir) throws Exception {
-        File saves = new File(gameDir, "saves");
-        File[] worlds = saves.listFiles(File::isDirectory);
-        if (worlds == null || worlds.length == 0) throw new IllegalStateException("Create or open a world first.");
-        final File[] selected = new File[1];
-        String[] names = new String[worlds.length];
-        for (int i = 0; i < worlds.length; i++) names[i] = worlds[i].getName();
-        final Object lock = new Object();
-        final boolean[] finished = {false};
-        requireActivity().runOnUiThread(() -> new AlertDialog.Builder(requireContext())
-                .setTitle("Choose world for datapack")
-                .setItems(names, (dialog, which) -> {
-                    selected[0] = new File(worlds[which], "datapacks");
-                    synchronized (lock) { finished[0] = true; lock.notifyAll(); }
-                })
-                .setOnCancelListener(dialog -> {
-                    synchronized (lock) { finished[0] = true; lock.notifyAll(); }
-                }).show());
-        synchronized (lock) {
-            while (!finished[0]) lock.wait();
+    private void downloadStoreFile(String url, File output) throws Exception {
+        FileUtils.ensureParentDirectory(output);
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(30000);
+        connection.setRequestProperty("User-Agent", "MahiruLauncher/1.0");
+        try {
+            int response = connection.getResponseCode();
+            if (response < 200 || response >= 300) {
+                throw new IllegalStateException("Download server returned HTTP " + response);
+            }
+            long total = connection.getContentLengthLong();
+            long received = 0;
+            try (InputStream input = connection.getInputStream();
+                 FileOutputStream outputStream = new FileOutputStream(output)) {
+                byte[] buffer = new byte[32768];
+                int count;
+                while ((count = input.read(buffer)) != -1) {
+                    received += count;
+                    outputStream.write(buffer, 0, count);
+                    if (isAdded()) {
+                        final int percent = total > 0
+                                ? (int) Math.min(100, received * 100L / total) : 0;
+                        final String label = total > 0
+                                ? android.text.format.Formatter.formatFileSize(requireContext(), received)
+                                  + " / " + android.text.format.Formatter.formatFileSize(requireContext(), total)
+                                : android.text.format.Formatter.formatFileSize(requireContext(), received);
+                        requireActivity().runOnUiThread(() -> {
+                            if (progress != null) progress.setProgress(percent);
+                            if (progressLabel != null) progressLabel.setText(label);
+                        });
+                    }
+                }
+                outputStream.getFD().sync();
+            }
+        } finally {
+            connection.disconnect();
         }
-        return selected[0];
     }
 
     private String getProjectType() {
