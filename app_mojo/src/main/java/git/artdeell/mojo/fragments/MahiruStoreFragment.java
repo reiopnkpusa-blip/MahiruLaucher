@@ -345,6 +345,8 @@ public class MahiruStoreFragment extends Fragment {
         progress.setProgress(0);
         progressLabel.setVisibility(View.VISIBLE);
         status.setText("Preparing " + filename + "...");
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final androidx.fragment.app.FragmentActivity host = requireActivity();
         new Thread(() -> {
             File temp = new File(Tools.DIR_CACHE,
                     "mahiru-store-" + System.currentTimeMillis() + "-" + filename);
@@ -420,12 +422,13 @@ public class MahiruStoreFragment extends Fragment {
                         final int percent = total > 0
                                 ? (int) Math.min(100, received * 100L / total) : 0;
                         final String label = total > 0
-                                ? android.text.format.Formatter.formatFileSize(requireContext(), received)
-                                  + " / " + android.text.format.Formatter.formatFileSize(requireContext(), total)
+                                ? android.text.format.Formatter.formatFileSize(appContext, received)
+                                  + " / " + android.text.format.Formatter.formatFileSize(appContext, total)
                                 : android.text.format.Formatter.formatFileSize(requireContext(), received);
-                        requireActivity().runOnUiThread(() -> {
-                            if (progress != null) progress.setProgress(percent);
-                            if (progressLabel != null) progressLabel.setText(label);
+                        host.runOnUiThread(() -> {
+                            if (!isAdded() || progress == null || progressLabel == null) return;
+                            progress.setProgress(percent);
+                            progressLabel.setText(label);
                         });
                     }
                 }
