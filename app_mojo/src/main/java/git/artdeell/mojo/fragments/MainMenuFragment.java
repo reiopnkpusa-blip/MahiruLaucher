@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -28,6 +29,7 @@ import git.artdeell.mojo.extra.ExtraConstants;
 import git.artdeell.mojo.extra.ExtraCore;
 import git.artdeell.mojo.instances.Instance;
 import git.artdeell.mojo.instances.Instances;
+import git.artdeell.mojo.prefs.LauncherPreferences;
 import git.artdeell.mojo.renderer.Minecraft3DView;
 import git.artdeell.mojo.utils.FileUtils;
 
@@ -130,6 +132,32 @@ public class MainMenuFragment extends Fragment {
             );
             return true;
         });
+
+        if (LauncherPreferences.PREF_STARTUP_ANIMATION) {
+            animateEntrance(lobbyContainer, 0);
+            animateEntrance(mNewsButton, 40);
+            animateEntrance(mDiscordButton, 80);
+            animateEntrance(mCustomControlButton, 120);
+            animateEntrance(mInstallJarButton, 160);
+            animateEntrance(mShareLogsButton, 200);
+            animateEntrance(mOpenDirectoryButton, 240);
+            animateEntrance(mVersionSpinner, 180);
+            animateEntrance(mEditProfileButton, 220);
+            animateEntrance(mPlayButton, 260);
+        }
+    }
+
+    private void animateEntrance(@NonNull View target, long delay) {
+        float offset = 14f * getResources().getDisplayMetrics().density;
+        target.setAlpha(0f);
+        target.setTranslationY(offset);
+        target.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(delay)
+                .setDuration(360)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 
     private void openGameDirectory(Context context) {

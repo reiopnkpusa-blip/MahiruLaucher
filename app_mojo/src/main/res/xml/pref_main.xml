@@ -10,6 +10,16 @@
     <git.artdeell.mojo.prefs.BackButtonPreference />
 
     <PreferenceCategory
+        android:title="@string/preference_category_appearance">
+
+        <SwitchPreferenceCompat
+            android:key="startup_animation"
+            android:title="@string/preference_startup_animation_title"
+            android:summary="@string/preference_startup_animation_description"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/preference_category_main_categories"
         >
 

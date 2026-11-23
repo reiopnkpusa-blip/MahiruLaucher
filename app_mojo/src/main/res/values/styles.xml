@@ -2,6 +2,8 @@
 <resources>
     <!-- Light or not? -->
     <style name="MojoLauncher" parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="colorAccent">@color/minebutton_color</item>
+        <item name="android:colorAccent">@color/minebutton_color</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>

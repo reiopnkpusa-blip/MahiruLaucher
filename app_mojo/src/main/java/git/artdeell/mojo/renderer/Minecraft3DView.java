@@ -1,54 +1,135 @@
 package git.artdeell.mojo.renderer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import git.artdeell.mojo.authenticator.accounts.Account;
+import git.artdeell.mojo.authenticator.accounts.Accounts;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Minecraft3DView extends GLSurfaceView
         implements GLSurfaceView.Renderer {
 
     private static final String TAG = "Minecraft3DView";
+    private static final float UNIT = 0.075f;
 
     private final float[] projection = new float[16];
     private final float[] view = new float[16];
     private final float[] model = new float[16];
+    private final float[] temp = new float[16];
     private final float[] mvp = new float[16];
-    private final float[] finalMatrix = new float[16];
 
     private int program;
     private int positionHandle;
+    private int uvHandle;
     private int matrixHandle;
-    private int colorHandle;
+    private int textureHandle;
+    private int textureId;
 
-    private FloatBuffer cubeBuffer;
-    private float rotation = 0f;
+    private float rotation;
+    private volatile Bitmap skinBitmap;
+    private volatile boolean skinLoading;
 
-    private final String vertexShader =
+    private final List<Box> boxes = new ArrayList<>();
+
+    private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;" +
-            "attribute vec4 vPosition;" +
+            "attribute vec3 aPosition;" +
+            "attribute vec2 aUV;" +
+            "varying vec2 vUV;" +
             "void main() {" +
-            "gl_Position = uMVPMatrix * vPosition;" +
+            " vUV = aUV;" +
+            " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
             "}";
 
-    private final String fragmentShader =
+    private static final String FRAGMENT_SHADER =
             "precision mediump float;" +
-            "uniform vec4 uColor;" +
+            "uniform sampler2D uTexture;" +
+            "varying vec2 vUV;" +
             "void main() {" +
-            "gl_FragColor = uColor;" +
+            " vec4 texColor = texture2D(uTexture, vUV);" +
+            " if (texColor.a < 0.1) discard;" +
+            " gl_FragColor = texColor;" +
             "}";
 
     public Minecraft3DView(Context context) {
         super(context);
-
         setEGLContextClientVersion(2);
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        loadSelectedSkin();
+    }
+
+    private void loadSelectedSkin() {
+        if (skinLoading || skinBitmap != null) return;
+        skinLoading = true;
+
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                Account account = Accounts.getCurrent();
+
+                if (account == null || account.isLocal()
+                        || account.authType == null
+                        || account.authType.skinUrl == null) {
+                    Log.i(TAG, "Selected account has no remote skin URL");
+                    return;
+                }
+
+                String skinUrl = String.format(
+                        account.authType.skinUrl, account.username);
+
+                connection = (HttpURLConnection)
+                        new URL(skinUrl).openConnection();
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(15000);
+                connection.setInstanceFollowRedirects(true);
+                connection.connect();
+
+                if (connection.getResponseCode() != 200) {
+                    Log.w(TAG, "Skin server returned "
+                            + connection.getResponseCode());
+                    return;
+                }
+
+                try (InputStream stream = connection.getInputStream()) {
+                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
+
+                    if (bitmap != null
+                            && bitmap.getWidth() >= 64
+                            && bitmap.getHeight() >= 64
+                            && bitmap.getWidth() % 64 == 0
+                            && bitmap.getHeight() % 64 == 0) {
+                        skinBitmap = bitmap;
+                        Log.i(TAG, "Minecraft skin loaded: "
+                                + bitmap.getWidth() + "x"
+                                + bitmap.getHeight());
+                    } else if (bitmap != null) {
+                        bitmap.recycle();
+                        Log.w(TAG, "Unsupported skin dimensions");
+                    }
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Could not load selected Minecraft skin", e);
+            } finally {
+                if (connection != null) connection.disconnect();
+                skinLoading = false;
+            }
+        }, "Mahiru-Skin-Loader").start();
     }
 
     @Override
@@ -56,226 +137,266 @@ public class Minecraft3DView extends GLSurfaceView
             javax.microedition.khronos.opengles.GL10 gl,
             javax.microedition.khronos.egl.EGLConfig config) {
 
-        GLES20.glClearColor(0.12f, 0.07f, 0.13f, 1f);
+        GLES20.glClearColor(0.09f, 0.055f, 0.10f, 1f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(
+                GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-        int vs = loadShader(GLES20.GL_VERTEX_SHADER, vertexShader);
-        int fs = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader);
-
-        if (vs == 0 || fs == 0) {
-            program = 0;
-            return;
-        }
+        int vs = loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
+        int fs = loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+        if (vs == 0 || fs == 0) return;
 
         program = GLES20.glCreateProgram();
         GLES20.glAttachShader(program, vs);
         GLES20.glAttachShader(program, fs);
         GLES20.glLinkProgram(program);
 
-        int[] linkStatus = new int[1];
-        GLES20.glGetProgramiv(
-                program,
-                GLES20.GL_LINK_STATUS,
-                linkStatus,
-                0
-        );
-
-        if (linkStatus[0] == 0) {
-            Log.e(TAG, "Shader program link failed: "
+        int[] status = new int[1];
+        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0);
+        if (status[0] == 0) {
+            Log.e(TAG, "Shader link failed: "
                     + GLES20.glGetProgramInfoLog(program));
             GLES20.glDeleteProgram(program);
             program = 0;
             return;
         }
 
-        positionHandle =
-                GLES20.glGetAttribLocation(program, "vPosition");
-        matrixHandle =
-                GLES20.glGetUniformLocation(program, "uMVPMatrix");
-        colorHandle =
-                GLES20.glGetUniformLocation(program, "uColor");
+        positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
+        uvHandle = GLES20.glGetAttribLocation(program, "aUV");
+        matrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
+        textureHandle = GLES20.glGetUniformLocation(program, "uTexture");
 
-        float[] cube = {
-                -0.5f, -0.5f,  0.5f,
-                 0.5f, -0.5f,  0.5f,
-                 0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
+        buildPlayerModel();
 
-                -0.5f, -0.5f, -0.5f,
-                -0.5f,  0.5f, -0.5f,
-                 0.5f,  0.5f, -0.5f,
-                 0.5f, -0.5f, -0.5f,
-
-                -0.5f,  0.5f, -0.5f,
-                -0.5f,  0.5f,  0.5f,
-                 0.5f,  0.5f,  0.5f,
-                 0.5f,  0.5f, -0.5f,
-
-                -0.5f, -0.5f, -0.5f,
-                 0.5f, -0.5f, -0.5f,
-                 0.5f, -0.5f,  0.5f,
-                -0.5f, -0.5f,  0.5f,
-
-                 0.5f, -0.5f, -0.5f,
-                 0.5f,  0.5f, -0.5f,
-                 0.5f,  0.5f,  0.5f,
-                 0.5f, -0.5f,  0.5f,
-
-                -0.5f, -0.5f, -0.5f,
-                -0.5f, -0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f, -0.5f
-        };
-
-        ByteBuffer bb = ByteBuffer.allocateDirect(cube.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-
-        cubeBuffer = bb.asFloatBuffer();
-        cubeBuffer.put(cube);
-        cubeBuffer.position(0);
+        if (skinBitmap == null) loadSelectedSkin();
     }
 
     private int loadShader(int type, String source) {
         int shader = GLES20.glCreateShader(type);
-
         GLES20.glShaderSource(shader, source);
         GLES20.glCompileShader(shader);
 
         int[] status = new int[1];
-        GLES20.glGetShaderiv(
-                shader,
-                GLES20.GL_COMPILE_STATUS,
-                status,
-                0
-        );
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0);
 
         if (status[0] == 0) {
-            Log.e(TAG, "Shader compile failed: "
-                    + GLES20.glGetShaderInfoLog(shader));
+            Log.e(TAG, "Shader error: " + GLES20.glGetShaderInfoLog(shader));
             GLES20.glDeleteShader(shader);
             return 0;
         }
-
         return shader;
+    }
+
+    private void buildPlayerModel() {
+        boxes.clear();
+
+        // Head and its outer hat layer
+        addBox(0, 12, 0, 8, 8, 8, 0, 0);
+        addBox(0, 12, 0, 8.5f, 8.5f, 8.5f, 32, 0);
+
+        // Torso and jacket
+        addBox(0, 2, 0, 8, 12, 4, 16, 16);
+        addBox(0, 2, 0, 8.5f, 12.5f, 4.5f, 16, 32);
+
+        // Right arm and sleeve
+        addBox(-6, 2, 0, 4, 12, 4, 40, 16);
+        addBox(-6, 2, 0, 4.5f, 12.5f, 4.5f, 40, 32);
+
+        // Left arm and sleeve (classic 4-pixel arm)
+        addBox(6, 2, 0, 4, 12, 4, 32, 48);
+        addBox(6, 2, 0, 4.5f, 12.5f, 4.5f, 48, 48);
+
+        // Legs and outer trouser layers
+        addBox(-2, -10, 0, 4, 12, 4, 0, 16);
+        addBox(-2, -10, 0, 4.5f, 12.5f, 4.5f, 0, 32);
+
+        addBox(2, -10, 0, 4, 12, 4, 16, 48);
+        addBox(2, -10, 0, 4.5f, 12.5f, 4.5f, 0, 48);
+    }
+
+    private void addBox(float x, float y, float z,
+                        float w, float h, float d,
+                        int u, int v) {
+        boxes.add(new Box(x, y, z, w, h, d, u, v));
+    }
+
+    private static float texU(float pixel) {
+        return pixel / 64f;
+    }
+
+    private static float texV(float pixel) {
+        return 1f - pixel / 64f;
+    }
+
+    private static class Box {
+        final float x, y, z;
+        final FloatBuffer buffer;
+
+        Box(float x, float y, float z,
+            float w, float h, float d, int u, int v) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+
+            float[] data = new float[36 * 5];
+            int[] index = {0};
+
+            float x0 = -w / 2f, x1 = w / 2f;
+            float y0 = -h / 2f, y1 = h / 2f;
+            float z0 = -d / 2f, z1 = d / 2f;
+
+            // Standard Minecraft skin atlas cuboid layout
+            face(data, index,
+                    new float[]{x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1},
+                    u+d, v+d, w, h);
+
+            face(data, index,
+                    new float[]{x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0},
+                    u+d+w+d, v+d, w, h);
+
+            face(data, index,
+                    new float[]{x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1},
+                    u, v+d, d, h);
+
+            face(data, index,
+                    new float[]{x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0},
+                    u+d+w, v+d, d, h);
+
+            face(data, index,
+                    new float[]{x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z0},
+                    u+d, v, w, d);
+
+            face(data, index,
+                    new float[]{x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1},
+                    u+d+w, v, w, d);
+
+            ByteBuffer bb = ByteBuffer.allocateDirect(data.length * 4);
+            bb.order(ByteOrder.nativeOrder());
+            buffer = bb.asFloatBuffer();
+            buffer.put(data);
+            buffer.position(0);
+        }
+
+        private static void face(float[] out, int[] index,
+                                 float[] p, float u, float v,
+                                 float width, float height) {
+            float u0 = texU(u), u1 = texU(u + width);
+            float v0 = texV(v), v1 = texV(v + height);
+
+            vertex(out,index,p,0,u0,v0);
+            vertex(out,index,p,1,u1,v0);
+            vertex(out,index,p,2,u1,v1);
+            vertex(out,index,p,0,u0,v0);
+            vertex(out,index,p,2,u1,v1);
+            vertex(out,index,p,3,u0,v1);
+        }
+
+        private static void vertex(float[] out, int[] index,
+                                   float[] p, int corner,
+                                   float u, float v) {
+            int pi = corner * 3;
+            int i = index[0];
+            out[i++] = p[pi];
+            out[i++] = p[pi + 1];
+            out[i++] = p[pi + 2];
+            out[i++] = u;
+            out[i++] = v;
+            index[0] = i;
+        }
+    }
+
+    private void uploadSkinIfNeeded() {
+        if (textureId != 0 || skinBitmap == null) return;
+
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        textureId = textures[0];
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
+                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
+                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
+                GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,
+                GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, skinBitmap, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
     }
 
     @Override
     public void onSurfaceChanged(
             javax.microedition.khronos.opengles.GL10 gl,
-            int width,
-            int height) {
-
-        if (height <= 0 || width <= 0) {
-            return;
-        }
+            int width, int height) {
+        if (width <= 0 || height <= 0) return;
 
         GLES20.glViewport(0, 0, width, height);
+        float ratio = (float) width / height;
 
-        float ratio = (float) width / (float) height;
+        Matrix.frustumM(projection, 0,
+                -ratio, ratio, -1, 1, 2, 30);
 
-        Matrix.frustumM(
-                projection, 0,
-                -ratio, ratio,
-                -1, 1,
-                2, 20
-        );
-
-        Matrix.setLookAtM(
-                view, 0,
-                0, 0, 7,
+        Matrix.setLookAtM(view, 0,
+                0, 0, 7.5f,
                 0, 0, 0,
-                0, 1, 0
-        );
+                0, 1, 0);
     }
 
     @Override
     public void onDrawFrame(
             javax.microedition.khronos.opengles.GL10 gl) {
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT
+                | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        GLES20.glClear(
-                GLES20.GL_COLOR_BUFFER_BIT |
-                GLES20.GL_DEPTH_BUFFER_BIT
-        );
+        if (program == 0) return;
 
-        if (program == 0 || cubeBuffer == null) {
-            return;
-        }
+        uploadSkinIfNeeded();
+        if (textureId == 0) return;
 
         GLES20.glUseProgram(program);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+        GLES20.glUniform1i(textureHandle, 0);
 
         Matrix.setIdentityM(model, 0);
         Matrix.rotateM(model, 0, rotation, 0, 1, 0);
 
-        drawPart(0f, 0.65f, 0f,
-                0.48f, 0.48f, 0.48f,
-                0.95f, 0.72f, 0.58f);
+        for (Box box : boxes) {
+            Matrix.setIdentityM(temp, 0);
+            Matrix.translateM(temp, 0,
+                    box.x * UNIT, box.y * UNIT, box.z * UNIT);
+            Matrix.scaleM(temp, 0, UNIT, UNIT, UNIT);
 
-        drawPart(0f, -0.05f, 0f,
-                0.55f, 0.72f, 0.30f,
-                1f, 0.35f, 0.62f);
+            float[] part = new float[16];
+            Matrix.multiplyMM(part, 0, model, 0, temp, 0);
+            Matrix.multiplyMM(mvp, 0, view, 0, part, 0);
+            Matrix.multiplyMM(part, 0, projection, 0, mvp, 0);
 
-        drawPart(-0.40f, -0.05f, 0f,
-                0.22f, 0.72f, 0.25f,
-                0.95f, 0.72f, 0.58f);
+            GLES20.glUniformMatrix4fv(matrixHandle, 1, false, part, 0);
 
-        drawPart(0.40f, -0.05f, 0f,
-                0.22f, 0.72f, 0.25f,
-                0.95f, 0.72f, 0.58f);
+            box.buffer.position(0);
+            box.buffer.position(0);
+            GLES20.glEnableVertexAttribArray(positionHandle);
+            GLES20.glEnableVertexAttribArray(uvHandle);
 
-        drawPart(-0.16f, -0.72f, 0f,
-                0.25f, 0.62f, 0.28f,
-                0.35f, 0.55f, 0.95f);
+            box.buffer.position(0);
+            GLES20.glVertexAttribPointer(positionHandle, 3,
+                    GLES20.GL_FLOAT, false, 20, box.buffer);
 
-        drawPart(0.16f, -0.72f, 0f,
-                0.25f, 0.62f, 0.28f,
-                0.35f, 0.55f, 0.95f);
+            box.buffer.position(3);
+            GLES20.glVertexAttribPointer(uvHandle, 2,
+                    GLES20.GL_FLOAT, false, 20, box.buffer);
 
-        rotation += 0.35f;
-    }
-
-    private void drawPart(
-            float x, float y, float z,
-            float sx, float sy, float sz,
-            float r, float g, float b) {
-
-        float[] part = new float[16];
-        float[] temp = new float[16];
-
-        Matrix.setIdentityM(part, 0);
-        Matrix.translateM(part, 0, x, y, z);
-        Matrix.scaleM(part, 0, sx, sy, sz);
-
-        Matrix.multiplyMM(temp, 0, model, 0, part, 0);
-        Matrix.multiplyMM(mvp, 0, view, 0, temp, 0);
-        Matrix.multiplyMM(finalMatrix, 0, projection, 0, mvp, 0);
-
-        GLES20.glUniformMatrix4fv(
-                matrixHandle, 1, false, finalMatrix, 0
-        );
-
-        GLES20.glUniform4f(colorHandle, r, g, b, 1f);
-
-        GLES20.glEnableVertexAttribArray(positionHandle);
-
-        cubeBuffer.position(0);
-
-        GLES20.glVertexAttribPointer(
-                positionHandle,
-                3,
-                GLES20.GL_FLOAT,
-                false,
-                0,
-                cubeBuffer
-        );
-
-        for (int i = 0; i < 6; i++) {
-            GLES20.glDrawArrays(
-                    GLES20.GL_TRIANGLE_FAN,
-                    i * 4,
-                    4
-            );
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
         }
 
         GLES20.glDisableVertexAttribArray(positionHandle);
+        GLES20.glDisableVertexAttribArray(uvHandle);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+        rotation += 0.28f;
     }
 }

@@ -566,4 +566,7 @@
     <string name="pref_clean_partfiles_subtitle">Clear partially downloaded game files. %.2f MB of space in use</string>
     <string name="clean_partfiles_wait">Clearing download cache…</string>
     <string name="warn_auth_type_missing">%s is not available, using local account</string>
+    <string name="preference_category_appearance">Appearance</string>
+    <string name="preference_startup_animation_title">Startup animation</string>
+    <string name="preference_startup_animation_description">Play a short, smooth entrance animation when the launcher home screen opens.</string>
 </resources>
