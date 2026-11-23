@@ -32,6 +32,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
+        android:id="@+id/store_button"
+        android:layout_width="@dimen/_52sdp"
+        android:layout_height="@dimen/_52sdp"
+        android:background="?attr/selectableItemBackground"
+        android:src="@drawable/ic_modrinth"
+        android:contentDescription="Mahiru Store"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/_12sdp"
+        app:layout_constraintEnd_toStartOf="@id/download_manager_button"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
         android:id="@+id/setting_button"
         android:layout_width="@dimen/_52sdp"
         android:layout_height="@dimen/_42sdp"
