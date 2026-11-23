@@ -199,6 +199,11 @@ public class MahiruStoreFragment extends Fragment {
         resultAdapter.notifyDataSetChanged();
 
         final String query = searchInput.getText().toString().trim();
+        if (gameVersion == null || gameVersion.trim().isEmpty()) {
+            progress.setVisibility(View.GONE);
+            status.setText("Select a Minecraft profile with a known game version first.");
+            return;
+        }
         final String type = getProjectType();
         final String loader = getLoader();
         final String version = gameVersion;
@@ -206,12 +211,7 @@ public class MahiruStoreFragment extends Fragment {
         new Thread(() -> {
             try {
                 JSONArray facets = new JSONArray();
-                if ("datapack".equals(type)) {
-                    JSONArray typeFacet = new JSONArray().put("all_project_types:datapack");
-                    facets.put(typeFacet);
-                } else {
-                    facets.put(new JSONArray().put("project_type:" + type));
-                }
+                facets.put(new JSONArray().put("project_type:" + type));
                 if (!version.isEmpty()) facets.put(new JSONArray().put("versions:" + version));
                 if (!loader.isEmpty() && ("mod".equals(type) || "modpack".equals(type))) facets.put(new JSONArray().put("categories:" + loader));
 
@@ -449,7 +449,7 @@ public class MahiruStoreFragment extends Fragment {
     private String getLoader() {
         if (loaderSpinner == null) return "";
         int selected = loaderSpinner.getSelectedItemPosition();
-        if (selected == 5) return ""; // Vanilla has no Modrinth loader facet.
+        if (selected == 5) return ""; // Vanilla uses projects without a mod-loader restriction.
         if (selected == 0) {
             Instance active = Instances.loadSelectedInstance();
             String id = active == null || active.versionId == null
