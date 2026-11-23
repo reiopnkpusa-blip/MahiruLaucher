@@ -76,15 +76,17 @@ public class MainMenuFragment extends Fragment {
         FrameLayout lobbyContainer =
                 view.findViewById(R.id.lobby_3d_container);
 
-        mLobby3DView = new Minecraft3DView(requireContext());
+        if (lobbyContainer != null) {
+            mLobby3DView = new Minecraft3DView(requireContext());
 
-        lobbyContainer.addView(
-                mLobby3DView,
-                new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT
-                )
-        );
+            lobbyContainer.addView(
+                    mLobby3DView,
+                    new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+            );
+        }
 
         mNewsButton.setOnClickListener(
                 v -> Tools.openURL(requireActivity(), Tools.URL_HOME)
@@ -134,7 +136,9 @@ public class MainMenuFragment extends Fragment {
         });
 
         if (LauncherPreferences.PREF_STARTUP_ANIMATION) {
-            animateEntrance(lobbyContainer, 0);
+            if (lobbyContainer != null) {
+                animateEntrance(lobbyContainer, 0);
+            }
             animateEntrance(mNewsButton, 40);
             animateEntrance(mDiscordButton, 80);
             animateEntrance(mCustomControlButton, 120);
