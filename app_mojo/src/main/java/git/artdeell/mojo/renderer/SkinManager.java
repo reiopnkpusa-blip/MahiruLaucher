@@ -81,10 +81,21 @@ public final class SkinManager {
             Canvas canvas = new Canvas(modern);
             Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
             canvas.drawBitmap(legacy, 0f, 0f, paint);
-            canvas.drawBitmap(legacy, new Rect(40, 16, 56, 32),
-                    new Rect(32, 48, 48, 64), paint);
-            canvas.drawBitmap(legacy, new Rect(0, 16, 16, 32),
-                    new Rect(16, 48, 32, 64), paint);
+            // Legacy skins have only right limbs. Mirror their base textures
+            // horizontally into the modern left-arm and left-leg atlas slots.
+            Rect oldArm = new Rect(40, 16, 56, 32);
+            Rect newArm = new Rect(32, 48, 48, 64);
+            canvas.save();
+            canvas.scale(-1f, 1f, newArm.centerX(), newArm.centerY());
+            canvas.drawBitmap(legacy, oldArm, newArm, paint);
+            canvas.restore();
+
+            Rect oldLeg = new Rect(0, 16, 16, 32);
+            Rect newLeg = new Rect(16, 48, 32, 64);
+            canvas.save();
+            canvas.scale(-1f, 1f, newLeg.centerX(), newLeg.centerY());
+            canvas.drawBitmap(legacy, oldLeg, newLeg, paint);
+            canvas.restore();
             legacy.recycle();
             bitmap = modern;
         }
