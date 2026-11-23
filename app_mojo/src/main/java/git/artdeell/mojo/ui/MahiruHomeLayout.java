@@ -107,7 +107,7 @@ public class MahiruHomeLayout extends ConstraintLayout
                         if (result != null && !result.isRecycled()) result.recycle();
                         return;
                     }
-                    if (result != null) backgroundImage.setImageBitmap(applyConfiguredBlur(result));
+                    if (result != null) backgroundImage.setImageBitmap(result);
                     else backgroundImage.setImageDrawable(null);
                 });
             }, "Mahiru-Custom-Background").start();
@@ -143,7 +143,7 @@ public class MahiruHomeLayout extends ConstraintLayout
                 if (connection != null) connection.disconnect();
             }
 
-            final Bitmap result = bitmap;
+            final Bitmap result = applyConfiguredBlur(bitmap);
             post(() -> {
                 if (token != loadToken || backgroundImage == null) {
                     if (result != null && !result.isRecycled()) result.recycle();
