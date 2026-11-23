@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="mahiru_skin_model_entries">
+        <item>Classic (4-pixel arms)</item>
+        <item>Slim (3-pixel arms)</item>
+    </string-array>
+    <string-array name="mahiru_skin_model_values">
+        <item>classic</item>
+        <item>slim</item>
+    </string-array>
+</resources>
