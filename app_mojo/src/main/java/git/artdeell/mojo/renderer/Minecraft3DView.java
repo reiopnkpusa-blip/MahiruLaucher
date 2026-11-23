@@ -1,6 +1,7 @@
 package git.artdeell.mojo.renderer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
@@ -8,6 +9,8 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
+
+import androidx.preference.PreferenceManager;
 
 import git.artdeell.mojo.authenticator.accounts.Account;
 import git.artdeell.mojo.authenticator.accounts.Accounts;
@@ -76,6 +79,32 @@ public class Minecraft3DView extends GLSurfaceView
         slimArms = "slim".equals(SkinManager.getLocalSkinVariant(context));
         loadSelectedSkin();
     }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        PreferenceManager.getDefaultSharedPreferences(getContext())
+                .registerOnSharedPreferenceChangeListener(modelPreferenceListener);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        PreferenceManager.getDefaultSharedPreferences(getContext())
+                .unregisterOnSharedPreferenceChangeListener(modelPreferenceListener);
+        super.onDetachedFromWindow();
+    }
+
+    private final SharedPreferences.OnSharedPreferenceChangeListener modelPreferenceListener =
+            (preferences, key) -> {
+                if ("local_skin_model".equals(key)) {
+                    queueEvent(() -> {
+                        slimArms = "slim".equals(SkinManager.getLocalSkinVariant(
+                                getContext().getApplicationContext()));
+                        buildPlayerModel();
+                    });
+                    requestRender();
+                }
+            };
 
     private void loadSelectedSkin() {
         if (skinLoading || skinBitmap != null) return;
@@ -154,6 +183,8 @@ public class Minecraft3DView extends GLSurfaceView
                             skinUrl = candidate;
                             String variant = item.optString("variant", "CLASSIC");
                             slimArms = "SLIM".equalsIgnoreCase(variant);
+                            queueEvent(this::buildPlayerModel);
+                            requestRender();
                             break;
                         }
                     }
