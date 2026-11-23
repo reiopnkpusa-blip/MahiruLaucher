@@ -5,6 +5,9 @@ import static git.artdeell.mojo.Tools.shareLog;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -100,6 +103,14 @@ public class MainMenuFragment extends Fragment {
 
         Button mPlayButton = view.findViewById(R.id.play_button);
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
+
+        styleMahiruButton(mNewsButton, false);
+        styleMahiruButton(mDiscordButton, false);
+        styleMahiruButton(mCustomControlButton, false);
+        styleMahiruButton(mInstallJarButton, false);
+        styleMahiruButton(mShareLogsButton, false);
+        styleMahiruButton(mOpenDirectoryButton, false);
+        styleMahiruButton(mPlayButton, true);
 
         FrameLayout lobbyContainer =
                 view.findViewById(R.id.lobby_3d_container);
@@ -286,6 +297,31 @@ public class MainMenuFragment extends Fragment {
                     }
                 })
                 .show();
+    }
+
+    private void styleMahiruButton(@NonNull Button button, boolean primary) {
+        button.setAllCaps(false);
+        button.setTextSize(13f);
+        button.setMinHeight(Math.round(44 * getResources().getDisplayMetrics().density));
+        button.setPadding(
+                Math.round(14 * getResources().getDisplayMetrics().density),
+                Math.round(8 * getResources().getDisplayMetrics().density),
+                Math.round(14 * getResources().getDisplayMetrics().density),
+                Math.round(8 * getResources().getDisplayMetrics().density));
+        button.setTextColor(Color.WHITE);
+        GradientDrawable shape = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                primary
+                        ? new int[]{0xFFFF79AA, 0xFFE83F88}
+                        : new int[]{0xCC382638, 0xCC241B2A});
+        shape.setCornerRadius(14 * getResources().getDisplayMetrics().density);
+        shape.setStroke(
+                Math.round(getResources().getDisplayMetrics().density),
+                primary ? 0xFFFFB1CE : 0x77FF8AB5);
+        RippleDrawable ripple = new RippleDrawable(
+                ColorStateList.valueOf(0x55FFFFFF), shape, null);
+        button.setBackground(ripple);
+        button.setElevation(3 * getResources().getDisplayMetrics().density);
     }
 
     private void animateEntrance(@NonNull View target, long delay) {
