@@ -130,9 +130,11 @@ public class MahiruAppearanceFragment extends LauncherPreferenceFragment {
             @Override public void onStopTrackingTouch(SeekBar bar) { }
         });
 
+        android.widget.ScrollView scroll = new android.widget.ScrollView(requireContext());
+        scroll.addView(content);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Launcher background preview")
-                .setView(content)
+                .setView(scroll)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Use this crop", (d, w) -> {
                     float maxX = Math.max(1f, previewView.getWidth()
