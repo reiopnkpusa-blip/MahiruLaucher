@@ -7,9 +7,15 @@
     <PreferenceCategory android:title="@string/preference_category_video" >
         <androidx.preference.SwitchPreferenceCompat
             android:key="launcher_fullscreen"
-            android:title="Fullscreen"
+            android:title="Launcher fullscreen"
             android:summary="Hide system bars while using the launcher"
             android:defaultValue="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="game_fullscreen"
+            android:title="Game fullscreen"
+            android:summary="Use immersive fullscreen while Minecraft is running"
+            android:defaultValue="true" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:key="force_unsupported_renderers"

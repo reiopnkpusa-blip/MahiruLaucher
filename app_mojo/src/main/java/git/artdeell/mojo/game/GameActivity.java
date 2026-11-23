@@ -84,6 +84,13 @@ import java.util.Objects;
 import git.artdeell.mojo.R;
 
 public class GameActivity extends BaseActivity implements ControlButtonMenuListener, EditorExitable, ServiceConnection {
+
+    @Override
+    public boolean setFullscreen() {
+        return androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("game_fullscreen", true);
+    }
+
     public static final String INTENT_LAUNCH_VERSION = "intent_version";
     public static final String INTENT_LAUNCH_CLASSPATH = "intent_classpath";
 
