@@ -80,7 +80,6 @@ public class Minecraft3DView extends GLSurfaceView
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        setZOrderMediaOverlay(true);
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         slimArms = "slim".equals(SkinManager.getLocalSkinVariant(context));
