@@ -252,20 +252,27 @@ public class MainMenuFragment extends Fragment {
                                     Context context = requireContext();
                                     new Thread(() -> {
                                         String message;
+                                        boolean uploaded = false;
                                         try {
-                                            SkinManager.uploadLocalSkin(
-                                                    context, account, variant);
+                                            SkinManager.setLocalSkinVariant(context, variant);
+                                            SkinManager.uploadLocalSkin(context, account, variant);
+                                            uploaded = true;
                                             message = "Skin uploaded successfully";
                                         } catch (Exception e) {
                                             message = "Upload failed: " + e.getMessage();
                                         }
 
                                         final String result = message;
+                                        final boolean refreshPreview = uploaded;
                                         if (isAdded()) {
-                                            requireActivity().runOnUiThread(() ->
-                                                    Toast.makeText(requireContext(),
-                                                            result,
-                                                            Toast.LENGTH_LONG).show());
+                                            requireActivity().runOnUiThread(() -> {
+                                                if (refreshPreview && mLobby3DView != null) {
+                                                    mLobby3DView.reloadSkin();
+                                                }
+                                                Toast.makeText(requireContext(),
+                                                        result,
+                                                        Toast.LENGTH_LONG).show();
+                                            });
                                         }
                                     }, "Mahiru-Skin-Upload").start();
                                 })
