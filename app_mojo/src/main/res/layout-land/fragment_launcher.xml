@@ -5,7 +5,7 @@
     android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app">
+    android:background="@android:color/transparent">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/lobby_center_guideline"
@@ -51,7 +51,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="12dp"
-        android:background="@color/background_bottom_bar"
+        android:background="@android:color/transparent"
         android:padding="16dp"
         app:layout_constraintStart_toStartOf="@id/lobby_center_guideline"
         app:layout_constraintEnd_toEndOf="parent"
