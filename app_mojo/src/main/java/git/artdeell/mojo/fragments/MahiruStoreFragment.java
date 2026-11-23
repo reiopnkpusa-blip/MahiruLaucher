@@ -201,7 +201,7 @@ public class MahiruStoreFragment extends Fragment {
                     facets.put(new JSONArray().put("project_type:" + type));
                 }
                 if (!version.isEmpty()) facets.put(new JSONArray().put("versions:" + version));
-                if (!loader.isEmpty() && "mod".equals(type)) facets.put(new JSONArray().put("categories:" + loader));
+                if (!loader.isEmpty() && ("mod".equals(type) || "modpack".equals(type))) facets.put(new JSONArray().put("categories:" + loader));
 
                 String url = API + "/search?query=" + enc(query)
                         + "&facets=" + enc(facets.toString()) + "&limit=40&index=relevance";
@@ -250,7 +250,7 @@ public class MahiruStoreFragment extends Fragment {
             try {
                 String url = API + "/project/" + enc(projectId) + "/version";
                 if (!version.isEmpty()) url += "?game_versions=" + enc(new JSONArray().put(version).toString());
-                if (!loader.isEmpty() && "mod".equals(type)) {
+                if (!loader.isEmpty() && ("mod".equals(type) || "modpack".equals(type))) {
                     url += (url.contains("?") ? "&" : "?") + "loaders=" + enc(new JSONArray().put(loader).toString());
                 }
                 JSONArray versions = new JSONArray(DownloadUtils.downloadString(url));
@@ -388,9 +388,20 @@ public class MahiruStoreFragment extends Fragment {
     }
 
     private String getLoader() {
-        if (loaderSpinner == null || loaderSpinner.getSelectedItemPosition() == 0
-                || loaderSpinner.getSelectedItemPosition() == 5) return "";
-        switch (loaderSpinner.getSelectedItemPosition()) {
+        if (loaderSpinner == null) return "";
+        int selected = loaderSpinner.getSelectedItemPosition();
+        if (selected == 5) return ""; // Vanilla has no Modrinth loader facet.
+        if (selected == 0) {
+            Instance active = Instances.loadSelectedInstance();
+            String id = active == null || active.versionId == null
+                    ? "" : active.versionId.toLowerCase(Locale.ROOT);
+            if (id.contains("fabric")) return "fabric";
+            if (id.contains("neoforge")) return "neoforge";
+            if (id.contains("forge")) return "forge";
+            if (id.contains("quilt")) return "quilt";
+            return "";
+        }
+        switch (selected) {
             case 1: return "fabric";
             case 2: return "forge";
             case 3: return "neoforge";
