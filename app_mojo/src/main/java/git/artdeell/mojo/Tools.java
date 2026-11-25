@@ -278,14 +278,6 @@ public final class Tools {
             window.setDecorFitsSystemWindows(false);
         }
 
-        // Explicitly control the status bar flag as well as the API 30+ insets
-        // controller. This avoids a partially visible status bar on some OEM Android builds.
-        if (noSystemBars) {
-            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        } else {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-
         WindowInsetsController insetsController = window.getInsetsController();
         if(insetsController != null) {
             insetsController.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
